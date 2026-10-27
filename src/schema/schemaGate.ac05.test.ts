@@ -8,7 +8,7 @@ const nineItems = Array.from({ length: 9 }, () => ({ date: 'Sat', schedule: [{ l
 
 const CASES: [string, Mutate, string][] = [
   ['a missing title', (d) => { delete d.blocks.title; }, 'blocks.title: is required'],
-  ['an unknown layout', (d) => { d.layout = 'diagonal'; }, 'layout: must be one of picture-right, picture-left, picture-bottom, list (got "diagonal")'],
+  ['an unknown layout', (d) => { d.layout = 'diagonal'; }, 'layout: must be one of picture-right, picture-left, picture-bottom, list, arch, phone-clock-safe, phone-arch, desktop-safe, desktop-arch (got "diagonal")'],
   ['a number as title', (d) => { d.blocks.title = 42; }, 'blocks.title: must be a string (got number)'],
   ['an extra property', (d) => { d.colour = 'red'; }, 'colour: is not allowed'],
   ['an empty schedule time', (d) => { d.blocks.schedule = [{ label: 'Level 1', time: '' }]; }, 'blocks.schedule[0].time: must not be empty'],

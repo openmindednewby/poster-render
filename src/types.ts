@@ -111,6 +111,7 @@ export interface RenderReport {
   pictureRegion: Rect;
   textBoxes: Rect[];
   cardBoxes: Rect[];
+  backdrop: Rect | null;
 }
 
 export interface Palette {
@@ -121,6 +122,7 @@ export interface Palette {
   ink: string;
   soft: string;
   card: string;
+  arch: string;
 }
 
 export interface FontSet {

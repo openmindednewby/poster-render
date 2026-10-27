@@ -14,6 +14,11 @@ export interface FlowGroup {
   gapAfter: number;
   card?: { color: string; pad: number };
   rule?: { color: string; height: number };
+  uniform?: boolean;
+}
+
+export interface FlowZone extends Rect {
+  right?: boolean;
 }
 
 export interface TextOp {
@@ -53,7 +58,14 @@ function lineSize(line: FlowLine, width: number, k: number, avail: number): numb
   return Math.max(0, Math.min(line.size * k, (line.size * (avail - indent)) / Math.max(width, 1)));
 }
 
-function placeGroup(m: Measured, k: number, col: Rect, y0: number, out: FlowResult | null): number {
+function groupRatio(m: Measured, k: number, avail: number): number | null {
+  if (!m.group.uniform) {
+    return null;
+  }
+  return Math.min(...m.group.lines.map((line, i) => lineSize(line, m.widths[i] ?? 1, k, avail) / line.size));
+}
+
+function placeGroup(m: Measured, k: number, col: FlowZone, y0: number, out: FlowResult | null): number {
   const { group } = m;
   let y = y0;
   if (group.rule) {
@@ -63,11 +75,12 @@ function placeGroup(m: Measured, k: number, col: Rect, y0: number, out: FlowResu
   const pad = group.card ? group.card.pad * k : 0;
   const top = y;
   y += pad;
+  const ratio = groupRatio(m, k, col.w - 2 * pad);
   group.lines.forEach((line, i) => {
-    const size = lineSize(line, m.widths[i] ?? 1, k, col.w - 2 * pad);
+    const size = ratio === null ? lineSize(line, m.widths[i] ?? 1, k, col.w - 2 * pad) : line.size * ratio;
     const indent = line.bullet ? line.size * k * BULLET_INDENT : 0;
-    const x = col.x + pad + indent;
     const w = ((m.widths[i] ?? 0) * size) / line.size;
+    const x = col.right ? col.x + col.w - pad - w : col.x + pad + indent;
     out?.texts.push({ text: line.text, font: '', color: line.color, box: { x, y, w, h: size * LINE_HEIGHT } });
     if (line.bullet && out) {
       out.bullets.push({ x: col.x + pad + size * BULLET_RADIUS, y: y + (size * LINE_HEIGHT) / 2, r: size * BULLET_RADIUS, color: line.bullet });
@@ -81,7 +94,7 @@ function placeGroup(m: Measured, k: number, col: Rect, y0: number, out: FlowResu
   return y + group.gapAfter * k - y0;
 }
 
-function placeColumn(groups: Measured[], k: number, col: Rect, out: FlowResult | null): number {
+function placeColumn(groups: Measured[], k: number, col: FlowZone, out: FlowResult | null): number {
   let h = 0;
   for (const g of groups) {
     h += placeGroup(g, k, col, col.y + h, out);
@@ -89,7 +102,7 @@ function placeColumn(groups: Measured[], k: number, col: Rect, out: FlowResult |
   return h;
 }
 
-function splitColumns(groups: Measured[], zone: Rect): { col: Rect; groups: Measured[] }[] {
+function splitColumns(groups: Measured[], zone: FlowZone): { col: FlowZone; groups: Measured[] }[] {
   if (zone.w / Math.max(zone.h, 1) <= WIDE || groups.length < 2) {
     return [{ col: zone, groups }];
   }
@@ -113,7 +126,7 @@ function splitColumns(groups: Measured[], zone: Rect): { col: Rect; groups: Meas
 }
 
 /** Lays groups out in the zone, shrinking every size by one factor until all text fits; never overflows. */
-export function flow(ctx: PosterContext, groups: FlowGroup[], zone: Rect, fonts: FontSet): FlowResult {
+export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fonts: FontSet): FlowResult {
   const measured = groups.map((group) => ({
     group,
     widths: group.lines.map((line) => {

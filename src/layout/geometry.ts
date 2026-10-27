@@ -1,12 +1,16 @@
 import { LayoutId } from '../enums/LayoutId';
 import { PictureAnchor } from '../enums/PictureAnchor';
 import type { PosterImage, Rect } from '../types';
+import { LAYOUT_SPECS, toRect } from './layoutSpecs';
 
 export interface LayoutGeometry {
   header: Rect;
   body: Rect;
   picture: Rect;
   alignX: number;
+  flanks?: Rect[];
+  logo?: Rect;
+  arch?: number;
 }
 
 const MARGIN = 0.045;
@@ -57,10 +61,26 @@ function bottom(w: number, h: number): LayoutGeometry {
   };
 }
 
+function fromSpec(spec: NonNullable<(typeof LAYOUT_SPECS)[LayoutId]>['portrait'], w: number, h: number): LayoutGeometry {
+  return {
+    header: toRect(spec.header, w, h),
+    body: toRect(spec.body, w, h),
+    picture: toRect(spec.picture, w, h),
+    alignX: spec.alignX,
+    flanks: spec.flanks?.map((f) => toRect(f, w, h)),
+    logo: spec.logo ? toRect(spec.logo, w, h) : undefined,
+    arch: spec.arch,
+  };
+}
+
 const mirror = (rect: Rect, w: number): Rect => ({ ...rect, x: w - rect.x - rect.w });
 
 /** Splits the canvas into header, body and picture regions that never overlap. */
 export function geometry(layout: LayoutId, w: number, h: number): LayoutGeometry {
+  const oriented = LAYOUT_SPECS[layout];
+  if (oriented) {
+    return fromSpec(h >= w ? oriented.portrait : oriented.landscape, w, h);
+  }
   if (layout === LayoutId.PictureBottom) {
     return bottom(w, h);
   }

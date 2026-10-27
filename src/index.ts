@@ -12,5 +12,6 @@ export type { JsonSchema } from './schema/jsonSchemaTypes';
 export { validateFlierDoc, FlierDocError, type FlierDocResult } from './schema/validateFlierDoc';
 export { render } from './render/render';
 export { exportPng, type DataUrlCanvas } from './exportPng';
+export { LAYOUT_CATALOGUE, defaultLayoutFor, type LayoutCatalogueEntry } from './layoutCatalogue';
 export { kizombaWorkshopDocs, kizombaWorkshop } from './examples/kizombaWorkshop';
 export type * from './types';

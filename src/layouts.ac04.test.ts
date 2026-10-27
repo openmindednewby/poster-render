@@ -1,4 +1,4 @@
-import { flierDocSchema, FontSetId, FormatId, LayoutId, PALETTES, PaletteId, render, validateFlierDoc } from './index';
+import { flierDocSchema, FontSetId, FormatId, LAYOUT_CATALOGUE, LayoutId, PALETTES, PaletteId, render, validateFlierDoc } from './index';
 import { docFor, LAYOUTS } from './testing/docs';
 import { asPoster, fixtureImage, hexRgb, newCanvas, pixels } from './testing/fixture';
 
@@ -40,5 +40,43 @@ describe('flierDocSchema AC-04 layouts, palettes and fonts', () => {
     const results = LAYOUTS.map((l) => validateFlierDoc(docFor(l, FormatId.Post)).ok);
 
     expect(results.every(Boolean)).toBe(true);
+  });
+});
+
+describe('flierDocSchema AC-04 design layouts', () => {
+  it('with the layout enum, offers the arch, phone clock-safe, phone arch, desktop safe and desktop arch layouts', () => {
+    const layouts = flierDocSchema.properties?.layout?.enum;
+
+    const named = ['arch', 'phone-clock-safe', 'phone-arch', 'desktop-safe', 'desktop-arch'].filter((l) => layouts?.includes(l));
+
+    expect(named).toHaveLength(5);
+  });
+
+  it.each(LAYOUT_CATALOGUE.flatMap((e) => e.formats.map((f): [LayoutId, FormatId] => [e.id, f])).filter(([l]) => l !== LayoutId.PictureBottom && l !== LayoutId.List))(
+    'with layout %s on its designed format %s and a bottom anchor, stands the picture on the bottom edge',
+    (layout, format) => {
+      const report = render(docFor(layout, format), { dancers: fixtureImage() }, asPoster(newCanvas()));
+
+      const pic = report.picture ?? { x: 0, y: 0, w: 0, h: 0 };
+      expect(pic.y + pic.h).toBe(report.height);
+    },
+  );
+
+  it.each([LayoutId.Arch, LayoutId.PhoneArch, LayoutId.DesktopArch])('with arch layout %s, paints the arch behind the picture off every text box', (layout) => {
+    const canvas = newCanvas();
+    const doc = docFor(layout, FormatId.Story);
+
+    const report = render(doc, { dancers: fixtureImage() }, asPoster(canvas));
+
+    const arch = report.backdrop ?? { x: 0, y: 0, w: 0, h: 0 };
+    const i = (Math.round(arch.y + arch.h * 0.75) * canvas.width + Math.round(arch.x + 2)) * 4;
+    expect(Array.from(pixels(canvas).slice(i, i + 3))).toEqual(hexRgb(PALETTES[doc.palette].arch));
+    expect(report.textBoxes.filter((b) => b.x < arch.x + arch.w && arch.x < b.x + b.w && b.y < arch.y + arch.h && arch.y < b.y + b.h)).toEqual([]);
+  });
+
+  it('with a picture-right layout, paints no arch', () => {
+    const report = render(docFor(LayoutId.PictureRight, FormatId.Story), { dancers: fixtureImage() }, asPoster(newCanvas()));
+
+    expect(report.backdrop).toBeNull();
   });
 });
