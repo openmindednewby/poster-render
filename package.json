@@ -1,0 +1,76 @@
+{
+  "name": "@dloizides/poster-render",
+  "version": "0.0.0",
+  "description": "Poster and flier rendering from one JSON document: FlierDoc JSON Schema + validator, a pure canvas render(doc, assets, canvas) with layouts, formats, palette and font sets, and PNG export. The picture is placed contain + anchor, never cropped, and nothing is drawn over it. No UI.",
+  "keywords": [
+    "poster",
+    "flier",
+    "canvas",
+    "json-schema",
+    "wallpaper",
+    "dloizides"
+  ],
+  "author": "dloizides",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openmindednewby/poster-render.git"
+  },
+  "homepage": "https://github.com/openmindednewby/poster-render#readme",
+  "bugs": {
+    "url": "https://github.com/openmindednewby/poster-render/issues"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "default": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "rimraf dist && tsup",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "security:audit": "npm audit --audit-level=high",
+    "prepublishOnly": "npm run clean && npm run build && npm run test"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^0.1.65",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.19.32",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "jest-util": "^29.7.0",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.4.15",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  }
+}
