@@ -82,6 +82,21 @@ function fitBottom(ctx: PosterContext, input: FitInput, floor: number): FittedTe
   return fitted;
 }
 
+function yieldPicture(geo: LayoutGeometry, give: number): LayoutGeometry {
+  const { picture: p, body: b } = geo;
+  const d = Math.round(p.w * give);
+  return { ...geo, picture: { ...p, x: p.x + d, w: p.w - d }, body: { ...b, w: b.w + d } };
+}
+
+function fitList(ctx: PosterContext, input: FitInput, floor: number, base: LayoutGeometry): FittedText {
+  const last: Reflow = { shift: 0, compact: true, wrap: true, lift: false };
+  let fitted = flowAll(ctx, input, base, last);
+  for (let step = 1; step <= GIVE_STEPS && smallest(fitted) < floor; step++) {
+    fitted = flowAll(ctx, input, yieldPicture(base, step * GIVE_STEP), last);
+  }
+  return fitted;
+}
+
 const SHIFTS = [0, ...Array.from({ length: SHIFT_STEPS }, (_v, i) => [(i + 1) * SHIFT_STEP, -(i + 1) * SHIFT_STEP]).flat()];
 const TIERS = [
   { compact: false, wrap: false, lift: false },
@@ -91,7 +106,7 @@ const TIERS = [
 ];
 const REFLOWS: Reflow[] = TIERS.flatMap((tier) => SHIFTS.map((shift) => ({ ...tier, shift })));
 
-/** Flows header, body and flanks until every run reaches 30px at a 1080 short edge: picture-bottom narrows its picture; every other layout moves the header line, sets rows on one line, wraps long lines and lifts the header into empty space, never shrinking the picture. */
+/** Flows header, body and flanks until every run reaches 30px at a 1080 short edge: picture-bottom and list narrow their picture as a last step; every other layout moves the header line, sets rows on one line, wraps long lines and lifts the header into empty space, never shrinking the picture. */
 export function fitToFloor(ctx: PosterContext, input: FitInput): FittedText {
   const { doc, width, height } = input;
   const floor = (FLOOR_PX * Math.min(width, height)) / BASE;
@@ -107,6 +122,9 @@ export function fitToFloor(ctx: PosterContext, input: FitInput): FittedText {
       return fitted;
     }
     best = best === null || smallest(fitted) > smallest(best) ? fitted : best;
+  }
+  if (doc.layout === LayoutId.List) {
+    return fitList(ctx, input, floor, base);
   }
   return best ?? flowAll(ctx, input, base, { shift: 0, compact: false, wrap: false, lift: false });
 }

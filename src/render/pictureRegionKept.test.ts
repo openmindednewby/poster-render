@@ -15,7 +15,7 @@ const SIDE_SHORT = 0.375;
 const R3_SHARE: Record<string, Partial<Record<FormatId, number>>> = {
   [LayoutId.PictureRight]: { story: 0.42, post: SIDE_SHORT, square: SIDE_SHORT, phone: 0.42, desktop: 0.42 },
   [LayoutId.PictureLeft]: { story: 0.42, post: SIDE_SHORT, square: SIDE_SHORT, phone: 0.42, desktop: 0.42 },
-  [LayoutId.List]: { story: 0.35, post: 0.35, square: 0.35, phone: 0.35, desktop: 0.36 },
+  [LayoutId.List]: { story: 0.35, phone: 0.35, desktop: 0.36 },
   [LayoutId.Arch]: { story: 0.3248, post: 0.3248, square: 0.3248, phone: 0.3248, desktop: 0.276 },
   [LayoutId.PhoneClockSafe]: { story: 0.26, post: 0.26, square: 0.26, phone: 0.26, desktop: 0.352 },
   [LayoutId.PhoneArch]: { story: 0.24, post: 0.24, square: 0.24, phone: 0.24, desktop: 0.252 },
