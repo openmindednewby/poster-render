@@ -24,7 +24,7 @@ const flanksBeside = (pic: Frac, top: number, bottom: number, m: number): [Frac,
 ];
 
 const ARCH_PIC: Frac = [0.22, 0.42, 0.56, 0.58];
-const PHONE_ARCH_PIC: Frac = [0.2, 0.6, 0.6, 0.4];
+const PHONE_ARCH_PIC: Frac = [0.2, 0.47, 0.6, 0.53];
 const DESK_ARCH_PIC: Frac = [0.355, 0.07, 0.32, 0.93];
 
 const ARCH_LANDSCAPE: LayoutSpec = {
@@ -46,7 +46,7 @@ export const LAYOUT_SPECS: Partial<Record<LayoutId, OrientedSpec>> = {
     landscape: { header: [0.04, 0.2, 0.52, 0.3], body: [0.04, 0.52, 0.52, 0.42], picture: [0.6, 0.12, 0.4, 0.88], alignX: 1 },
   },
   [LayoutId.PhoneArch]: {
-    portrait: { header: [0.045, 0.3, 0.91, 0.13], body: [0.045, 0.44, 0.91, 0.14], picture: PHONE_ARCH_PIC, alignX: 0.5, flanks: flanksBeside(PHONE_ARCH_PIC, 0.63, 0.94, 0.03), arch: 0.08 },
+    portrait: { header: [0.045, 0.05, 0.91, 0.16], body: [0.045, 0.22, 0.91, 0.21], picture: PHONE_ARCH_PIC, alignX: 0.5, flanks: flanksBeside(PHONE_ARCH_PIC, 0.5, 0.94, 0.03), arch: 0.08 },
     landscape: { ...ARCH_LANDSCAPE, header: [0.04, 0.16, 0.3, 0.42], picture: [0.36, 0.16, 0.3, 0.84] },
   },
   [LayoutId.DesktopSafe]: {

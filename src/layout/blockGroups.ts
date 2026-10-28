@@ -138,7 +138,7 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOp
   groups.push(...(isList ? listGroups(doc, l, u) : eventGroups(doc, l, u, options)));
   if (b.includes) {
     const lines = [l.accent(b.includes.heading, SIZE.small), ...b.includes.items.map((i) => l.item(i, SIZE.small))].flatMap((line) => wrapped(line, options.wrap));
-    groups.push({ lines, gapAfter: GAP.includes * u, uniform: true });
+    groups.push({ lines, gapAfter: GAP.includes * u, uniform: true, keepWithNext: b.footer !== undefined, attachNext: b.footer !== undefined });
   }
   if (b.footer) {
     groups.push({ lines: wrapped(l.soft(b.footer, SIZE.small), options.wrap), gapAfter: 0 });

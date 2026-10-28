@@ -19,6 +19,7 @@ export interface FlowGroup {
   uniform?: boolean;
   icon?: { color: string; glyph: string };
   keepWithNext?: boolean;
+  attachNext?: boolean;
 }
 
 export interface FlowZone extends Rect {
@@ -153,11 +154,16 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
 function placeColumn(groups: Measured[], at: ColumnPlace, out: FlowResult | null): number {
   const { k, col, spread = 0 } = at;
   let h = 0;
-  for (const g of groups) {
-    h += placeGroup(g, { k, col, y0: col.y + h }, out) + spread;
-  }
-  return h - spread;
+  groups.forEach((g, i) => {
+    h += placeGroup(g, { k, col, y0: col.y + h }, out);
+    if (i < groups.length - 1 && g.group.attachNext !== true) {
+      h += spread;
+    }
+  });
+  return h;
 }
+
+const spreadGaps = (groups: Measured[]): number => groups.slice(0, -1).filter((g) => g.group.attachNext !== true).length;
 
 const columnSum = (heights: number[], from: number, to: number): number => heights.slice(from, to).reduce((a, b) => a + b, 0);
 
@@ -243,7 +249,10 @@ export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fo
   const out = emptyFlow();
   const heights = columns.map((c) => placeColumn(c.groups, { k: lo, col: c.col }, null));
   const end = Math.max(...heights);
-  columns.forEach((c, i) => placeColumn(c.groups, { k: lo, col: c.col, spread: c.groups.length > 1 && columns.length > 1 ? (end - (heights[i] ?? end)) / (c.groups.length - 1) : 0 }, out));
+  columns.forEach((c, i) => {
+    const gaps = spreadGaps(c.groups);
+    placeColumn(c.groups, { k: lo, col: c.col, spread: gaps > 0 && columns.length > 1 ? (end - (heights[i] ?? end)) / gaps : 0 }, out);
+  });
   const lines = groups.flatMap((g) => g.lines);
   out.texts.forEach((t, i) => {
     const line = lines[i];

@@ -39,7 +39,7 @@ describe('render arch flank prices', () => {
 });
 
 describe('render arch body columns', () => {
-  it.each(ARCH_BODIES)('with layout %s on format %s, ends the two body columns within 40u of each other', (layout, format) => {
+  it.each(ARCH_BODIES)('with layout %s on format %s, starts the right body column no more than 40u below the left one', (layout, format) => {
     const { width, height } = FORMAT_SIZES[format];
     const body = geometry(layout, width, height).body;
 
@@ -47,10 +47,10 @@ describe('render arch body columns', () => {
 
     const inBody = texts.filter((t) => t.y >= body.y && t.y < body.y + body.h);
     const mid = body.x + body.w / 2;
-    const end = (side: DrawnText[]): number => Math.max(...side.map((t) => t.bottom));
-    const left = end(inBody.filter((t) => t.x < mid));
-    const right = end(inBody.filter((t) => t.x >= mid));
-    expect(Math.abs(left - right)).toBeLessThanOrEqual(BALANCE_U * unit(format));
+    const start = (side: DrawnText[]): number => Math.min(...side.map((t) => t.y));
+    const left = start(inBody.filter((t) => t.x < mid));
+    const right = start(inBody.filter((t) => t.x >= mid));
+    expect(right - left).toBeLessThanOrEqual(BALANCE_U * unit(format));
   });
 
   it.each(ARCH_BODIES)('with layout %s on format %s, sets the includes and footer at 30px real or more', (layout, format) => {

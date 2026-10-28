@@ -18,7 +18,7 @@ export const LAYOUT_CATALOGUE: readonly LayoutCatalogueEntry[] = [
   { id: LayoutId.PictureBottom, designId: 'picture-bottom', label: 'Picture bottom', description: 'Titles and details on top, the picture across the bottom half.', formats: POSTERS },
   { id: LayoutId.List, designId: 'list', label: 'Upcoming list', description: 'Several dated events as a list beside the picture.', formats: POSTERS },
   { id: LayoutId.PhoneClockSafe, designId: 'P-A', label: 'Phone, clock clear', description: 'Lock-screen wallpaper: top kept clear for the clock, details on the left, picture on the right.', formats: [FormatId.Phone] },
-  { id: LayoutId.PhoneArch, designId: 'P-B', label: 'Phone arch', description: 'Lock-screen wallpaper: top kept clear for the clock, details in the middle, the picture in an arch at the bottom.', formats: [FormatId.Phone] },
+  { id: LayoutId.PhoneArch, designId: 'P-B', label: 'Phone arch', description: 'Lock-screen wallpaper: titles at the top, details under them, the picture in an arch at the bottom.', formats: [FormatId.Phone] },
   { id: LayoutId.DesktopSafe, designId: 'D-A', label: 'Desktop, icons clear', description: 'Desktop wallpaper: text on the left clear of desktop icons and the taskbar, the picture on the right.', formats: [FormatId.Desktop] },
   { id: LayoutId.DesktopArch, designId: 'D-B', label: 'Desktop arch', description: 'Desktop wallpaper: titles left, the picture in a centred arch, details right.', formats: [FormatId.Desktop] },
 ];

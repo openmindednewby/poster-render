@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.7
+
+- P-B "Phone arch": the title block starts at the top margin (0.05h) instead of under a clock zone; the arch picture starts at 0.47h and grows.
+- The footer stays attached under the includes list: columns never spread space between them, and both stay in one column.
+
 ## 0.2.5
 
 - Own-key checks: the schema validator and the asset lookup use `Object.hasOwn`, so a `__proto__` key is rejected and an imageId such as `constructor` is reported missing.
