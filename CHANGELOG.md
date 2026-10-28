@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- FLIER-2 "Flier Studio follow-ups" D6 polish: optional `FlierDoc.tuning` with `headerGap` (closes the empty band between a stacked header and the body) and `itemDateScale` (list date script size). Docs without `tuning` render pixel-identical to 0.3.0.
+
 ## 0.3.0
 
 - FLIER-2 "Flier Studio follow-ups" theme 2 Golden hour: `GoldenHorizon` palette, Coastal font set, Horizon sky-only background.
