@@ -70,12 +70,42 @@ function itemGroup(item: ListItem, l: Makers, u: number): FlowGroup {
   return { lines, gapAfter: GAP.item * u };
 }
 
-function eventGroups(doc: FlierDoc, l: Makers, u: number, withPrices: boolean): FlowGroup[] {
+export interface BodyOptions {
+  withPrices?: boolean;
+  compact?: boolean;
+  wrap?: boolean;
+}
+
+const WRAP_FROM = 14;
+
+function halves(text: string): string[] {
+  const mid = text.length / 2;
+  const spaces = [...text].flatMap((c, i) => (c === ' ' ? [i] : []));
+  if (text.length < WRAP_FROM || spaces.length === 0) {
+    return [text];
+  }
+  const cut = spaces.reduce((best, i) => (Math.abs(i - mid) < Math.abs(best - mid) ? i : best));
+  return [text.slice(0, cut), text.slice(cut + 1)];
+}
+
+function wrapped(line: FlowLine, wrap: boolean | undefined): FlowLine[] {
+  const parts = wrap ? halves(line.text) : [line.text];
+  return parts.map((text, i) => (i === 0 ? { ...line, text } : { ...line, text, bullet: undefined, hang: line.bullet !== undefined }));
+}
+
+function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions): FlowGroup[] {
   const b = doc.blocks;
   const groups: FlowGroup[] = [];
-  b.schedule?.forEach((row) => groups.push({ lines: [l.strong(row.label, SIZE.scheduleLabel), l.accent(row.time, SIZE.scheduleTime)], gapAfter: GAP.row * u }));
-  const prices = (withPrices ? b.prices : undefined) ?? [];
-  prices.forEach((row, i) => groups.push({ lines: [l.strong(row.amount, SIZE.priceAmount), l.accent(row.label, SIZE.priceLabel)], gapAfter: GAP.row * u, keepWithNext: i < prices.length - 1 }));
+  const schedule = b.schedule ?? [];
+  schedule.forEach((row, i) => {
+    const lines = options.compact ? [l.strong(`${row.label}  ${row.time}`, SIZE.scheduleLabel)] : [l.strong(row.label, SIZE.scheduleLabel), l.accent(row.time, SIZE.scheduleTime)];
+    groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < schedule.length - 1 });
+  });
+  const prices = (options.withPrices === false ? undefined : b.prices) ?? [];
+  prices.forEach((row, i) => {
+    const lines = options.compact ? [l.strong(`${row.amount} ${row.label}`, SIZE.priceAmount)] : [l.strong(row.amount, SIZE.priceAmount), l.accent(row.label, SIZE.priceLabel)];
+    groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < prices.length - 1 });
+  });
   return groups;
 }
 
@@ -94,23 +124,24 @@ export function flankPriceGroups(doc: FlierDoc, p: Palette, u: number): FlowGrou
   return (doc.blocks.prices ?? []).map((row) => ({ lines: [l.strong(row.amount, SIZE.flankAmount), l.accent(row.label, SIZE.flankLabel)], gapAfter: GAP.row * u }));
 }
 
-/** Turns the doc's body blocks into flow groups: venue with its pin, schedule or list items, prices, includes, footer. */
-export function bodyGroups(doc: FlierDoc, p: Palette, u: number, withPrices = true): FlowGroup[] {
+/** Turns the doc's body blocks into flow groups: venue with its pin, schedule or list items, prices, includes, footer; compact sets each schedule and price row on one line. */
+export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOptions = {}): FlowGroup[] {
   const l = makers(p, u);
   const b = doc.blocks;
   const groups: FlowGroup[] = [];
   const isList = doc.layout === LayoutId.List;
   if (b.venue) {
     const size = isList ? SIZE.listVenue : SIZE.venue;
-    groups.push({ lines: b.venue.map((v) => l.venue(v, size)), gapAfter: GAP.venue * u, rule: { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.accent, glyph: p.background } });
+    const keepWithNext = !isList && (b.schedule?.length ?? 0) > 0;
+    groups.push({ lines: b.venue.map((v) => l.venue(v, size)), gapAfter: GAP.venue * u, rule: { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.accent, glyph: p.background }, keepWithNext });
   }
-  groups.push(...(isList ? listGroups(doc, l, u) : eventGroups(doc, l, u, withPrices)));
+  groups.push(...(isList ? listGroups(doc, l, u) : eventGroups(doc, l, u, options)));
   if (b.includes) {
-    const lines = [l.accent(b.includes.heading, SIZE.small), ...b.includes.items.map((i) => l.item(i, SIZE.small))];
+    const lines = [l.accent(b.includes.heading, SIZE.small), ...b.includes.items.map((i) => l.item(i, SIZE.small))].flatMap((line) => wrapped(line, options.wrap));
     groups.push({ lines, gapAfter: GAP.includes * u, uniform: true });
   }
   if (b.footer) {
-    groups.push({ lines: [l.soft(b.footer, SIZE.small)], gapAfter: 0 });
+    groups.push({ lines: wrapped(l.soft(b.footer, SIZE.small), options.wrap), gapAfter: 0 });
   }
   return groups;
 }

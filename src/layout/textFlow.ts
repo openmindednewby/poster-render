@@ -7,6 +7,7 @@ export interface FlowLine {
   size: number;
   color: string;
   bullet?: string;
+  hang?: boolean;
 }
 
 export interface FlowGroup {
@@ -62,13 +63,15 @@ export const fontOf = (line: FlowLine, size: number, fonts: FontSet): string => 
 
 export const emptyFlow = (): FlowResult => ({ texts: [], cards: [], rules: [], bullets: [], icons: [] });
 
+const indented = (line: FlowLine): boolean => line.bullet !== undefined || line.hang === true;
+
 const iconSize = (group: FlowGroup, k: number): number => {
   const first = group.lines[0];
   return group.icon && first ? first.size * k * LINE_HEIGHT * ICON_SCALE : 0;
 };
 
 function lineSize(line: FlowLine, width: number, k: number, avail: number): number {
-  const indent = line.bullet ? line.size * k * BULLET_INDENT : 0;
+  const indent = indented(line) ? line.size * k * BULLET_INDENT : 0;
   return Math.max(0, Math.min(line.size * k, (line.size * (avail - indent)) / Math.max(width, 1)));
 }
 
@@ -125,7 +128,7 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
   const ratio = groupRatio(m, k, avail);
   group.lines.forEach((line, i) => {
     const size = ratio === null ? lineSize(line, m.widths[i] ?? 1, k, avail) : line.size * ratio;
-    const indent = (line.bullet ? line.size * k * BULLET_INDENT : 0) + iconIndent;
+    const indent = (indented(line) ? line.size * k * BULLET_INDENT : 0) + iconIndent;
     const w = ((m.widths[i] ?? 0) * size) / line.size;
     const x = col.right ? col.x + col.w - pad - w : col.x + pad + indent;
     out?.texts.push({ text: line.text, font: '', color: line.color, box: { x, y, w, h: size * LINE_HEIGHT } });
