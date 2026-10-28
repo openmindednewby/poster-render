@@ -13,8 +13,8 @@ function greenStats(canvas: ReturnType<typeof newCanvas>, box: Box): { total: nu
   for (let y = 0; y < canvas.height; y++) {
     for (let x = 0; x < canvas.width; x++) {
       const green = isGreen(d, (y * canvas.width + x) * 4);
-      if (green) total++;
-      if (!green && x >= box.x0 && x < box.x1 && y >= box.y0 && y < box.y1) insideNotGreen++;
+      if (green) {total++;}
+      if (!green && x >= box.x0 && x < box.x1 && y >= box.y0 && y < box.y1) {insideNotGreen++;}
     }
   }
   return { total, insideNotGreen };

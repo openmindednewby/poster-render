@@ -21,9 +21,10 @@ const BOTTOM_MIN_TOP = 0.25;
 const BOTTOM_HEADER_SHARE = 0.3;
 const BOTTOM_GAP = 40 / 1080;
 const BOTTOM_ASPECT = 0.57;
+const DEFAULT_SIDE: [number, number] = [0.6, 0.42];
 const PICTURE_SIDE: Record<string, [number, number]> = {
-  [LayoutId.PictureRight]: [0.6, 0.42],
-  [LayoutId.PictureLeft]: [0.6, 0.42],
+  [LayoutId.PictureRight]: DEFAULT_SIDE,
+  [LayoutId.PictureLeft]: DEFAULT_SIDE,
   [LayoutId.List]: [0.5, 0.36],
 };
 const ANCHOR_Y: Record<PictureAnchor, number> = { [PictureAnchor.Top]: 0, [PictureAnchor.Center]: 0.5, [PictureAnchor.Bottom]: 1 };
@@ -90,15 +91,22 @@ export function geometry(layout: LayoutId, w: number, h: number, give = 0): Layo
   if (layout === LayoutId.PictureBottom) {
     return bottom(w, h, BOTTOM_PICTURE_W - give);
   }
-  const g = side(w, h, PICTURE_SIDE[layout] ?? [0.6, 0.42]);
+  const g = side(w, h, PICTURE_SIDE[layout] ?? DEFAULT_SIDE);
   if (layout !== LayoutId.PictureLeft) {
     return g;
   }
   return { header: mirror(g.header, w), body: mirror(g.body, w), picture: mirror(g.picture, w), alignX: 1 - g.alignX };
 }
 
+export interface ContainFit {
+  anchor: PictureAnchor;
+  alignX: number;
+  scale: number;
+}
+
 /** Fits the whole image inside the region (contain), scaled and anchored; never crops it. */
-export function placeContain(image: PosterImage, region: Rect, anchor: PictureAnchor, alignX: number, scale: number): Rect {
+export function placeContain(image: PosterImage, region: Rect, fit: ContainFit): Rect {
+  const { anchor, alignX, scale } = fit;
   const s = Math.min(region.w / image.width, region.h / image.height) * scale;
   const w = Math.floor(image.width * s);
   const h = Math.floor(image.height * s);

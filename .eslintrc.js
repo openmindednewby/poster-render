@@ -5,7 +5,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: './tsconfig.json',
+    project: './tsconfig.test.json',
   },
   plugins: ['@typescript-eslint'],
   extends: [
@@ -26,5 +26,5 @@ module.exports = {
     'eqeqeq': ['error', 'always'],
     'curly': ['error', 'all'],
   },
-  ignorePatterns: ['dist/', 'node_modules/', '*.js', '**/*.test.ts', 'src/testing/**'],
+  ignorePatterns: ['dist/', 'node_modules/', '*.js'],
 };

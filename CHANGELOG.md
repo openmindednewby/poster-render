@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.5
+
+- Own-key checks: the schema validator and the asset lookup use `Object.hasOwn`, so a `__proto__` key is rejected and an imageId such as `constructor` is reported missing.
+- `placeContain(image, region, { anchor, alignX, scale })` takes an options object (was 5 positional parameters).
+- Named size and gap constants; ESLint now lints tests and `src/testing`.
+- README: install, usage, canvas injection, fonts, type floor, schema version policy.
+
 ## 0.2.4
 
 - Type floor: every text run is at least 30px at a 1080 short edge (scaled per format by short edge). When a layout cannot fit its text at the floor, the picture yields space to the body (and a header stacked above it) in 2.5% steps.

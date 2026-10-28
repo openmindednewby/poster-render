@@ -31,10 +31,10 @@ export function validateFlierDoc(input: unknown): FlierDocResult {
 
 export function missingAssets(doc: FlierDoc, assets: PosterAssets): string[] {
   const errors: string[] = [];
-  if (doc.picture && assets[doc.picture.imageId] === undefined) {
+  if (doc.picture && !Object.hasOwn(assets, doc.picture.imageId)) {
     errors.push(`picture.imageId: no asset named "${doc.picture.imageId}"`);
   }
-  if (doc.logo && assets[doc.logo.imageId] === undefined) {
+  if (doc.logo && !Object.hasOwn(assets, doc.logo.imageId)) {
     errors.push(`logo.imageId: no asset named "${doc.logo.imageId}"`);
   }
   return errors;

@@ -137,7 +137,7 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
   const radius = Math.min(width, height) * CARD_RADIUS;
   [head, body, ...sides].forEach((f) => drawFlow(ctx, f, radius));
   const logoImage = doc.logo ? assets[doc.logo.imageId] : undefined;
-  const logo = logoImage ? placeContain(logoImage, geo.logo ? zones.logo : capAligned(zones.logo, head), PictureAnchor.Top, 1, 1) : null;
+  const logo = logoImage ? placeContain(logoImage, geo.logo ? zones.logo : capAligned(zones.logo, head), { anchor: PictureAnchor.Top, alignX: 1, scale: 1 }) : null;
   if (logoImage && logo) {
     ctx.drawImage(logoImage, logo.x, logo.y, logo.w, logo.h);
   }
@@ -146,8 +146,8 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
   if (backdrop) {
     drawArch(ctx, backdrop, palette.arch);
   }
-  const region = pictureRegion(doc.layout, geo, body, u, { width, height });
-  const picture = image && doc.picture ? placeContain(image, region, doc.picture.anchor, geo.alignX, doc.picture.scale) : null;
+  const region = pictureRegion(doc.layout, geo, body, { width, height, u });
+  const picture = image && doc.picture ? placeContain(image, region, { anchor: doc.picture.anchor, alignX: geo.alignX, scale: doc.picture.scale }) : null;
   if (image && picture) {
     ctx.drawImage(image, picture.x, picture.y, picture.w, picture.h);
   }

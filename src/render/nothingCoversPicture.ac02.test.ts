@@ -12,7 +12,7 @@ function foreignPixelsInside(canvas: ReturnType<typeof newCanvas>, box: Box, bg:
   for (let y = Math.max(0, box.y0); y < Math.min(canvas.height, box.y1); y++) {
     for (let x = Math.max(0, box.x0); x < Math.min(canvas.width, box.x1); x++) {
       const i = (y * canvas.width + x) * 4;
-      if (d[i] !== bg[0] || d[i + 1] !== bg[1] || d[i + 2] !== bg[2]) count++;
+      if (d[i] !== bg[0] || d[i + 1] !== bg[1] || d[i + 2] !== bg[2]) {count++;}
     }
   }
   return count;

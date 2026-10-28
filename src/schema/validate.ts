@@ -65,7 +65,7 @@ function checkObject(schema: JsonSchema, value: Record<string, unknown>, path: s
     }
   }
   for (const [key, child] of Object.entries(value)) {
-    const childSchema = props[key];
+    const childSchema = Object.hasOwn(props, key) ? props[key] : undefined;
     if (childSchema === undefined) {
       if (schema.additionalProperties === false) {
         errors.push(`${join(path, key)}: is not allowed`);

@@ -37,10 +37,10 @@ function measuredEnd(f: FlowResult, fallback: number): number {
 }
 
 /** The picture region; for picture-bottom it starts 40u under the body's measured end, keeps the geometry's width and runs to the frame edge. */
-export function pictureRegion(layout: LayoutId, geo: LayoutGeometry, body: FlowResult, u: number, frame: { width: number; height: number }): Rect {
+export function pictureRegion(layout: LayoutId, geo: LayoutGeometry, body: FlowResult, frame: { width: number; height: number; u: number }): Rect {
   if (layout !== LayoutId.PictureBottom) {
     return geo.picture;
   }
-  const y = Math.min(geo.picture.y, Math.ceil(measuredEnd(body, geo.body.y) + BODY_GAP * u));
+  const y = Math.min(geo.picture.y, Math.ceil(measuredEnd(body, geo.body.y) + BODY_GAP * frame.u));
   return { x: geo.picture.x, y, w: geo.picture.w, h: frame.height - y };
 }

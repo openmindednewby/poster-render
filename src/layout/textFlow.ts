@@ -50,6 +50,7 @@ const BULLET_RADIUS = 0.2;
 const RULE_GAP = 2.5;
 const RULE_WIDTH = 0.9;
 const WIDE = 1.6;
+const COLUMN_GAP = 0.04;
 const TWO_COLUMN_MIN = 0.75;
 const TWO_COLUMN_GAIN = 1.15;
 const MIN_K = 0.02;
@@ -78,16 +79,37 @@ function groupRatio(m: Measured, k: number, avail: number): number | null {
   return Math.min(...m.group.lines.map((line, i) => lineSize(line, m.widths[i] ?? 1, k, avail) / line.size));
 }
 
-function placeIcon(group: FlowGroup, d: number, x: number, textTop: number, textBottom: number, out: FlowResult | null): number {
-  if (!group.icon || d <= 0) {
-    return textBottom;
-  }
-  const textH = textBottom - textTop;
-  out?.icons.push({ rect: { x, y: textTop + Math.max(0, (textH - d) / 2), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph });
-  return textTop + Math.max(textH, d);
+interface IconBox {
+  d: number;
+  x: number;
+  top: number;
+  bottom: number;
 }
 
-function placeGroup(m: Measured, k: number, col: FlowZone, y0: number, out: FlowResult | null): number {
+interface GroupPlace {
+  k: number;
+  col: FlowZone;
+  y0: number;
+}
+
+interface ColumnPlace {
+  k: number;
+  col: FlowZone;
+  spread?: number;
+}
+
+function placeIcon(group: FlowGroup, box: IconBox, out: FlowResult | null): number {
+  const { d, x, top, bottom } = box;
+  if (!group.icon || d <= 0) {
+    return bottom;
+  }
+  const textH = bottom - top;
+  out?.icons.push({ rect: { x, y: top + Math.max(0, (textH - d) / 2), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph });
+  return top + Math.max(textH, d);
+}
+
+function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number {
+  const { k, col, y0 } = at;
   const { group } = m;
   let y = y0;
   if (group.rule) {
@@ -112,7 +134,7 @@ function placeGroup(m: Measured, k: number, col: FlowZone, y0: number, out: Flow
     }
     y += size * LINE_HEIGHT;
   });
-  y = placeIcon(group, d, col.x + pad, top + pad, y, out);
+  y = placeIcon(group, { d, x: col.x + pad, top: top + pad, bottom: y }, out);
   y += pad;
   if (group.rule && group.ruleBelow) {
     y += group.rule.height * k * (RULE_GAP - 1);
@@ -125,10 +147,11 @@ function placeGroup(m: Measured, k: number, col: FlowZone, y0: number, out: Flow
   return y + group.gapAfter * k - y0;
 }
 
-function placeColumn(groups: Measured[], k: number, col: FlowZone, out: FlowResult | null, spread = 0): number {
+function placeColumn(groups: Measured[], at: ColumnPlace, out: FlowResult | null): number {
+  const { k, col, spread = 0 } = at;
   let h = 0;
   for (const g of groups) {
-    h += placeGroup(g, k, col, col.y + h, out) + spread;
+    h += placeGroup(g, { k, col, y0: col.y + h }, out) + spread;
   }
   return h - spread;
 }
@@ -157,9 +180,9 @@ function keepTogether(groups: Measured[], heights: number[], cut: number): numbe
 type Columns = { col: FlowZone; groups: Measured[] }[];
 
 function splitColumns(groups: Measured[], zone: FlowZone): Columns {
-  const gap = Math.round(zone.w * 0.04);
+  const gap = Math.round(zone.w * COLUMN_GAP);
   const w = (zone.w - gap) / 2;
-  const heights = groups.map((g) => placeGroup(g, 1, { ...zone, w }, 0, null));
+  const heights = groups.map((g) => placeGroup(g, { k: 1, col: { ...zone, w }, y0: 0 }, null));
   const total = columnSum(heights, 0, heights.length);
   let cut = 1;
   for (let c = 2; c < groups.length; c++) {
@@ -175,7 +198,7 @@ function splitColumns(groups: Measured[], zone: FlowZone): Columns {
 }
 
 function largestK(columns: Columns, zoneH: number): number {
-  const fits = (k: number): boolean => columns.every((c) => placeColumn(c.groups, k, c.col, null) <= zoneH);
+  const fits = (k: number): boolean => columns.every((c) => placeColumn(c.groups, { k, col: c.col }, null) <= zoneH);
   let lo = MIN_K;
   let hi = 1;
   if (fits(1)) {
@@ -215,9 +238,9 @@ export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fo
   }));
   const { columns, k: lo } = bestColumns(measured, zone);
   const out = emptyFlow();
-  const heights = columns.map((c) => placeColumn(c.groups, lo, c.col, null));
+  const heights = columns.map((c) => placeColumn(c.groups, { k: lo, col: c.col }, null));
   const end = Math.max(...heights);
-  columns.forEach((c, i) => placeColumn(c.groups, lo, c.col, out, c.groups.length > 1 && columns.length > 1 ? (end - (heights[i] ?? end)) / (c.groups.length - 1) : 0));
+  columns.forEach((c, i) => placeColumn(c.groups, { k: lo, col: c.col, spread: c.groups.length > 1 && columns.length > 1 ? (end - (heights[i] ?? end)) / (c.groups.length - 1) : 0 }, out));
   const lines = groups.flatMap((g) => g.lines);
   out.texts.forEach((t, i) => {
     const line = lines[i];

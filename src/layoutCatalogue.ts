@@ -31,7 +31,7 @@ const DEFAULTS: Readonly<Record<FormatId, LayoutId>> = {
   [FormatId.Desktop]: LayoutId.DesktopSafe,
 };
 
-/** The default layout for a format (D4: E-A for posters, P-A for phone, D-A for desktop). */
+/** The default layout for a format (D4 "Layouts: keep all"): E-A "Picture right" for posters, P-A "Phone, clock clear", D-A "Desktop, icons clear". */
 export function defaultLayoutFor(format: FormatId): LayoutId {
   return DEFAULTS[format];
 }
