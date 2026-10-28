@@ -3,4 +3,5 @@ export enum PaletteId {
   Night = 'night',
   Sea = 'sea',
   Rose = 'rose',
+  GoldenHorizon = 'golden-horizon',
 }

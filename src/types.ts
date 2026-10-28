@@ -78,9 +78,13 @@ export interface TextMetricsLike {
   width: number;
 }
 
+export interface PosterGradient {
+  addColorStop(offset: number, color: string): void;
+}
+
 export interface PosterContext {
   font: string;
-  fillStyle: string;
+  fillStyle: string | PosterGradient;
   textAlign: string;
   textBaseline: string;
   globalAlpha: number;
@@ -96,6 +100,7 @@ export interface PosterContext {
   arc(x: number, y: number, r: number, start: number, end: number): void;
   closePath(): void;
   fill(): void;
+  createLinearGradient(x0: number, y0: number, x1: number, y1: number): PosterGradient;
 }
 
 export interface PosterCanvas {
@@ -125,7 +130,11 @@ export interface Palette {
   soft: string;
   card: string;
   arch: string;
+  sky?: readonly SkyStop[];
 }
+
+/** One gradient stop of a horizon sky: offset 0 (top) to 1 (bottom) and its colour. */
+export type SkyStop = readonly [number, string];
 
 export interface FontSet {
   display: string;

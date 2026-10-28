@@ -1,3 +1,4 @@
+import { paintGround } from './background';
 import { BackgroundStyle } from '../enums/BackgroundStyle';
 import { PictureAnchor } from '../enums/PictureAnchor';
 import { FONT_SETS } from '../fontSets';
@@ -128,8 +129,7 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
   const u = Math.min(width, height) / BASE;
   const { geo, zones, head, body, sides } = fitToFloor(ctx, { doc, palette, fonts, width, height });
   ctx.globalAlpha = 1;
-  ctx.fillStyle = palette.background;
-  ctx.fillRect(0, 0, width, height);
+  paintGround(ctx, doc.background, palette, { width, height });
   if (doc.background === BackgroundStyle.Tint) {
     ctx.fillStyle = palette.tint;
     [geo.header, geo.body].forEach((r) => ctx.fillRect(r.x, r.y, r.w, r.h));
