@@ -18,7 +18,7 @@ const HEADER_PORTRAIT = 0.3;
 const HEADER_LANDSCAPE = 0.36;
 const BOTTOM_PICTURE_W = 0.8;
 const BOTTOM_MIN_TOP = 0.25;
-const BOTTOM_HEADER_SHARE = 0.45;
+const BOTTOM_HEADER_SHARE = 0.3;
 const BOTTOM_GAP = 40 / 1080;
 const BOTTOM_ASPECT = 0.57;
 const PICTURE_SIDE: Record<string, [number, number]> = {
@@ -52,11 +52,11 @@ function side(w: number, h: number, fraction: [number, number]): LayoutGeometry 
   };
 }
 
-function bottom(w: number, h: number): LayoutGeometry {
+function bottom(w: number, h: number, share: number): LayoutGeometry {
   const m = r(Math.min(w, h) * MARGIN);
   const gap = r(Math.min(w, h) * BOTTOM_GAP);
-  const picW = r(w * BOTTOM_PICTURE_W);
-  const picH = Math.min(r(picW / BOTTOM_ASPECT), h - r(h * BOTTOM_MIN_TOP));
+  const picW = r(w * share);
+  const picH = Math.min(r(picW / BOTTOM_ASPECT), r(((h - r(h * BOTTOM_MIN_TOP)) * share) / BOTTOM_PICTURE_W));
   const pic = h - picH;
   const top = m + r((pic - m) * BOTTOM_HEADER_SHARE);
   return {
@@ -81,14 +81,14 @@ function fromSpec(spec: NonNullable<(typeof LAYOUT_SPECS)[LayoutId]>['portrait']
 
 const mirror = (rect: Rect, w: number): Rect => ({ ...rect, x: w - rect.x - rect.w });
 
-/** Splits the canvas into header, body and picture regions that never overlap. */
-export function geometry(layout: LayoutId, w: number, h: number): LayoutGeometry {
+/** Splits the canvas into header, body and picture regions that never overlap; give narrows the picture-bottom picture. */
+export function geometry(layout: LayoutId, w: number, h: number, give = 0): LayoutGeometry {
   const oriented = LAYOUT_SPECS[layout];
   if (oriented) {
     return fromSpec(h >= w ? oriented.portrait : oriented.landscape, w, h);
   }
   if (layout === LayoutId.PictureBottom) {
-    return bottom(w, h);
+    return bottom(w, h, BOTTOM_PICTURE_W - give);
   }
   const g = side(w, h, PICTURE_SIDE[layout] ?? [0.6, 0.42]);
   if (layout !== LayoutId.PictureLeft) {

@@ -6,13 +6,13 @@ import { docFor } from '../testing/docs';
 import { asPoster, newCanvas, tallImage } from '../testing/fixture';
 
 const HEADER_HEIGHT_SHARE = 0.25;
-const MIN_WIDTH_SHARE = 0.75;
+const MIN_WIDTH_SHARE = 0.55;
 const TARGET_WIDTH_SHARE = 0.8;
 const GAP_U = 40;
 const BASE = 1080;
 
 describe('render picture-bottom with a tall picture', () => {
-  it('on a story, sizes the picture to about 0.8 of the width, below the body, on the bottom edge', () => {
+  it('on a story, sizes the picture to the width left once the body type holds its floor, at most 0.8 of the width, below the body, on the bottom edge', () => {
     const { width, height } = FORMAT_SIZES[FormatId.Story];
     const canvas = newCanvas();
 

@@ -2,16 +2,15 @@ import { BackgroundStyle } from '../enums/BackgroundStyle';
 import { PictureAnchor } from '../enums/PictureAnchor';
 import { FONT_SETS } from '../fontSets';
 import { FORMAT_SIZES } from '../formats';
-import { bodyGroups, flankPriceGroups, headerGroups } from '../layout/blockGroups';
-import { geometry, placeContain, type LayoutGeometry } from '../layout/geometry';
-import { emptyFlow, flow, type FlowResult } from '../layout/textFlow';
+import { placeContain, type LayoutGeometry } from '../layout/geometry';
+import type { FlowResult } from '../layout/textFlow';
 import { PALETTES } from '../palettes';
 import { FlierDocError, missingAssets, validateFlierDoc } from '../schema/validateFlierDoc';
-import { equalFlanks, pictureRegion } from './regions';
+import { fitToFloor } from './fitToFloor';
+import { pictureRegion } from './regions';
 import type { FlierDoc, PosterAssets, PosterCanvas, PosterContext, Rect, RenderReport } from '../types';
 
 const BASE = 1080;
-const LOGO_SHARE = 0.26;
 const CARD_RADIUS = 0.035;
 const CAP_TOP = 0.15;
 const PIN_HEAD_Y = 0.08;
@@ -114,11 +113,6 @@ function capAligned(zone: Rect, head: FlowResult): Rect {
   return { ...zone, y: zone.y + shift, h: zone.h - shift };
 }
 
-function splitHeader(header: Rect, hasLogo: boolean): { text: Rect; logo: Rect } {
-  const logoW = hasLogo ? Math.round(header.w * LOGO_SHARE) : 0;
-  return { text: { ...header, w: header.w - logoW * 1.1 }, logo: { ...header, x: header.x + header.w - logoW, w: logoW } };
-}
-
 /** Validates the doc, then draws it on the canvas (resized to the format); throws FlierDocError before touching the canvas. */
 export function render(input: unknown, assets: PosterAssets, canvas: PosterCanvas): RenderReport {
   const doc = checked(input, assets);
@@ -131,8 +125,8 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
   }
   const palette = PALETTES[doc.palette];
   const fonts = FONT_SETS[doc.fonts];
-  const geo = geometry(doc.layout, width, height);
   const u = Math.min(width, height) / BASE;
+  const { geo, zones, head, body, sides } = fitToFloor(ctx, { doc, palette, fonts, width, height });
   ctx.globalAlpha = 1;
   ctx.fillStyle = palette.background;
   ctx.fillRect(0, 0, width, height);
@@ -140,11 +134,6 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
     ctx.fillStyle = palette.tint;
     [geo.header, geo.body].forEach((r) => ctx.fillRect(r.x, r.y, r.w, r.h));
   }
-  const zones = geo.logo ? { text: geo.header, logo: geo.logo } : splitHeader(geo.header, doc.logo !== undefined);
-  const head = flow(ctx, headerGroups(doc, palette, u), zones.text, fonts);
-  const flanks = geo.flanks ?? [];
-  const body = flow(ctx, bodyGroups(doc, palette, u, flanks.length === 0), geo.body, fonts);
-  const sides = flanks.length > 0 ? equalFlanks(ctx, flankPriceGroups(doc, palette, u), flanks, fonts) : [emptyFlow()];
   const radius = Math.min(width, height) * CARD_RADIUS;
   [head, body, ...sides].forEach((f) => drawFlow(ctx, f, radius));
   const logoImage = doc.logo ? assets[doc.logo.imageId] : undefined;

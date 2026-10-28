@@ -50,6 +50,8 @@ const BULLET_RADIUS = 0.2;
 const RULE_GAP = 2.5;
 const RULE_WIDTH = 0.9;
 const WIDE = 1.6;
+const TWO_COLUMN_MIN = 0.75;
+const TWO_COLUMN_GAIN = 1.15;
 const MIN_K = 0.02;
 const STEPS = 22;
 const ICON_SCALE = 1.6;
@@ -152,10 +154,9 @@ function keepTogether(groups: Measured[], heights: number[], cut: number): numbe
   return candidates.reduce((best, c) => (tallest(heights, c) < tallest(heights, best) ? c : best));
 }
 
-function splitColumns(groups: Measured[], zone: FlowZone): { col: FlowZone; groups: Measured[] }[] {
-  if (zone.w / Math.max(zone.h, 1) <= WIDE || groups.length < 2) {
-    return [{ col: zone, groups }];
-  }
+type Columns = { col: FlowZone; groups: Measured[] }[];
+
+function splitColumns(groups: Measured[], zone: FlowZone): Columns {
   const gap = Math.round(zone.w * 0.04);
   const w = (zone.w - gap) / 2;
   const heights = groups.map((g) => placeGroup(g, 1, { ...zone, w }, 0, null));
@@ -173,17 +174,8 @@ function splitColumns(groups: Measured[], zone: FlowZone): { col: FlowZone; grou
   ];
 }
 
-/** Lays groups out in the zone, shrinking every size by one factor until all text fits; never overflows. */
-export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fonts: FontSet): FlowResult {
-  const measured = groups.map((group) => ({
-    group,
-    widths: group.lines.map((line) => {
-      ctx.font = fontOf(line, line.size, fonts);
-      return ctx.measureText(line.text).width;
-    }),
-  }));
-  const columns = splitColumns(measured, zone);
-  const fits = (k: number): boolean => columns.every((c) => placeColumn(c.groups, k, c.col, null) <= zone.h);
+function largestK(columns: Columns, zoneH: number): number {
+  const fits = (k: number): boolean => columns.every((c) => placeColumn(c.groups, k, c.col, null) <= zoneH);
   let lo = MIN_K;
   let hi = 1;
   if (fits(1)) {
@@ -197,6 +189,31 @@ export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fo
       hi = mid;
     }
   }
+  return lo;
+}
+
+function bestColumns(measured: Measured[], zone: FlowZone): { columns: Columns; k: number } {
+  const single: Columns = [{ col: zone, groups: measured }];
+  const k1 = largestK(single, zone.h);
+  if (measured.length < 2 || zone.w / Math.max(zone.h, 1) < TWO_COLUMN_MIN) {
+    return { columns: single, k: k1 };
+  }
+  const split = splitColumns(measured, zone);
+  const k2 = largestK(split, zone.h);
+  const forced = zone.w / Math.max(zone.h, 1) > WIDE;
+  return forced || k2 > k1 * TWO_COLUMN_GAIN ? { columns: split, k: k2 } : { columns: single, k: k1 };
+}
+
+/** Lays groups out in the zone, shrinking every size by one factor until all text fits; never overflows. */
+export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fonts: FontSet): FlowResult {
+  const measured = groups.map((group) => ({
+    group,
+    widths: group.lines.map((line) => {
+      ctx.font = fontOf(line, line.size, fonts);
+      return ctx.measureText(line.text).width;
+    }),
+  }));
+  const { columns, k: lo } = bestColumns(measured, zone);
   const out = emptyFlow();
   const heights = columns.map((c) => placeColumn(c.groups, lo, c.col, null));
   const end = Math.max(...heights);

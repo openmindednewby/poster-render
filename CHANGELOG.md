@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4
+
+- Type floor: every text run is at least 30px at a 1080 short edge (scaled per format by short edge). When a layout cannot fit its text at the floor, the picture yields space to the body (and a header stacked above it) in 2.5% steps.
+- picture-bottom sizes the picture to the space left once the body holds the floor (about 0.56w for the real tall couple on a story); it stays whole on the bottom edge.
+- Text zones pick two columns when that sets the type at least 15% larger.
+
 ## 0.2.3
 
 - `picture-bottom`: the picture is sized for a tall cut-out (design aspect 0.57): 80% of the width, standing on the bottom edge; the header and body share the top (at least 25% of the height) and shrink to fit. The picture is never cropped.
