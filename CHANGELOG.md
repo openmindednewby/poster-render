@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2
+
+- Arch flanks: both flank price groups use one size per line, so "per hour" and "Party pass" match.
+- Two-column bodies: the break is chosen from heights measured at the column width, and the shorter column spreads its group gaps so both columns end together.
+- Footer base size 38 (was 34): includes and footer stay at 30 px or more on story and phone arch layouts.
+- `picture-bottom`: the picture region starts 40u under the body's measured end, spans the middle 80% of the width and runs to the frame edge.
+- Venue gets a rule below as well as above (`FlowGroup.ruleBelow`).
+
 ## 0.2.1
 
 - Venue pin: an accent disc with a pin glyph beside the venue lines; `RenderReport.iconBoxes`.

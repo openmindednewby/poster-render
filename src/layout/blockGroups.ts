@@ -66,7 +66,7 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, withPrices = tr
   const groups: FlowGroup[] = [];
   const isList = doc.layout === LayoutId.List;
   if (b.venue) {
-    groups.push({ lines: b.venue.map((v) => l.venue?.(v, isList ? 48 : 58) as FlowLine), gapAfter: 40 * u, rule: { color: p.accent, height: 8 * u }, icon: { color: p.accent, glyph: p.background } });
+    groups.push({ lines: b.venue.map((v) => l.venue?.(v, isList ? 48 : 58) as FlowLine), gapAfter: 40 * u, rule: { color: p.accent, height: 8 * u }, ruleBelow: true, icon: { color: p.accent, glyph: p.background } });
   }
   groups.push(...(isList ? listGroups(doc, l, u) : eventGroups(doc, l, u, withPrices)));
   if (b.includes) {
@@ -74,7 +74,7 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, withPrices = tr
     groups.push({ lines, gapAfter: 24 * u, uniform: true });
   }
   if (b.footer) {
-    groups.push({ lines: [l.soft?.(b.footer, 34) as FlowLine], gapAfter: 0 });
+    groups.push({ lines: [l.soft?.(b.footer, 38) as FlowLine], gapAfter: 0 });
   }
   return groups;
 }

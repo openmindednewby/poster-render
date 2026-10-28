@@ -4,10 +4,11 @@ import { FONT_SETS } from '../fontSets';
 import { FORMAT_SIZES } from '../formats';
 import { bodyGroups, flankPriceGroups, headerGroups } from '../layout/blockGroups';
 import { geometry, placeContain, type LayoutGeometry } from '../layout/geometry';
-import { emptyFlow, flow, type FlowGroup, type FlowResult } from '../layout/textFlow';
+import { emptyFlow, flow, type FlowResult } from '../layout/textFlow';
 import { PALETTES } from '../palettes';
 import { FlierDocError, missingAssets, validateFlierDoc } from '../schema/validateFlierDoc';
-import type { FlierDoc, FontSet, PosterAssets, PosterCanvas, PosterContext, Rect, RenderReport } from '../types';
+import { equalFlanks, pictureRegion } from './regions';
+import type { FlierDoc, PosterAssets, PosterCanvas, PosterContext, Rect, RenderReport } from '../types';
 
 const BASE = 1080;
 const LOGO_SHARE = 0.26;
@@ -107,11 +108,6 @@ function drawArch(ctx: PosterContext, r: Rect, color: string): void {
   ctx.fill();
 }
 
-function flankFlows(ctx: PosterContext, groups: FlowGroup[], flanks: Rect[], fonts: FontSet): FlowResult[] {
-  const half = Math.ceil(groups.length / 2);
-  return flanks.map((zone, i) => (i === 0 ? flow(ctx, groups.slice(0, half), zone, fonts) : flow(ctx, groups.slice(half), { ...zone, right: true }, fonts)));
-}
-
 function capAligned(zone: Rect, head: FlowResult): Rect {
   const first = head.texts[0]?.box;
   const shift = first ? Math.min(Math.max(0, Math.round(first.y + first.h * CAP_TOP) - zone.y), Math.round(zone.h / 2)) : 0;
@@ -148,7 +144,7 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
   const head = flow(ctx, headerGroups(doc, palette, u), zones.text, fonts);
   const flanks = geo.flanks ?? [];
   const body = flow(ctx, bodyGroups(doc, palette, u, flanks.length === 0), geo.body, fonts);
-  const sides = flanks.length > 0 ? flankFlows(ctx, flankPriceGroups(doc, palette, u), flanks, fonts) : [emptyFlow()];
+  const sides = flanks.length > 0 ? equalFlanks(ctx, flankPriceGroups(doc, palette, u), flanks, fonts) : [emptyFlow()];
   const radius = Math.min(width, height) * CARD_RADIUS;
   [head, body, ...sides].forEach((f) => drawFlow(ctx, f, radius));
   const logoImage = doc.logo ? assets[doc.logo.imageId] : undefined;
@@ -161,7 +157,8 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
   if (backdrop) {
     drawArch(ctx, backdrop, palette.arch);
   }
-  const picture = image && doc.picture ? placeContain(image, geo.picture, doc.picture.anchor, geo.alignX, doc.picture.scale) : null;
+  const region = pictureRegion(doc.layout, geo, body, u, { width, height });
+  const picture = image && doc.picture ? placeContain(image, region, doc.picture.anchor, geo.alignX, doc.picture.scale) : null;
   if (image && picture) {
     ctx.drawImage(image, picture.x, picture.y, picture.w, picture.h);
   }
@@ -169,7 +166,7 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
     width,
     height,
     picture,
-    pictureRegion: geo.picture,
+    pictureRegion: region,
     textBoxes: [head, body, ...sides].flatMap((f) => f.texts.map((t) => t.box)),
     cardBoxes: body.cards.map((c) => c.rect),
     iconBoxes: [head, body, ...sides].flatMap((f) => f.icons.map((i) => i.rect)),

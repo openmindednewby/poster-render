@@ -34,3 +34,15 @@ describe('flow', () => {
     expect(xOf('5€')).toBe(xOf('20€'));
   });
 });
+
+describe('flow rule below', () => {
+  it('with a group flagged ruleBelow, draws a second rule under its last line', () => {
+    const ctx = createCanvas(10, 10).getContext('2d') as unknown as PosterContext;
+    const group = { lines: [line('Bailemos')], gapAfter: 0, rule: { color: '#000000', height: 8 }, ruleBelow: true };
+
+    const out = flow(ctx, [group], { x: 0, y: 0, w: 400, h: 1000 }, FONT_SETS[FontSetId.Classic]);
+
+    expect(out.rules).toHaveLength(2);
+    expect(out.rules[1]?.rect.y).toBeGreaterThan(out.texts[0]?.box.y ?? 0);
+  });
+});

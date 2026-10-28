@@ -14,6 +14,7 @@ export interface FlowGroup {
   gapAfter: number;
   card?: { color: string; pad: number };
   rule?: { color: string; height: number };
+  ruleBelow?: boolean;
   uniform?: boolean;
   icon?: { color: string; glyph: string };
   keepWithNext?: boolean;
@@ -111,19 +112,26 @@ function placeGroup(m: Measured, k: number, col: FlowZone, y0: number, out: Flow
   });
   y = placeIcon(group, d, col.x + pad, top + pad, y, out);
   y += pad;
+  if (group.rule && group.ruleBelow) {
+    y += group.rule.height * k * (RULE_GAP - 1);
+    out?.rules.push({ rect: { x: col.x, y, w: col.w * RULE_WIDTH, h: group.rule.height * k }, color: group.rule.color });
+    y += group.rule.height * k;
+  }
   if (group.card) {
     out?.cards.unshift({ rect: { x: col.x, y: top, w: col.w, h: y - top }, color: group.card.color });
   }
   return y + group.gapAfter * k - y0;
 }
 
-function placeColumn(groups: Measured[], k: number, col: FlowZone, out: FlowResult | null): number {
+function placeColumn(groups: Measured[], k: number, col: FlowZone, out: FlowResult | null, spread = 0): number {
   let h = 0;
   for (const g of groups) {
-    h += placeGroup(g, k, col, col.y + h, out);
+    h += placeGroup(g, k, col, col.y + h, out) + spread;
   }
-  return h;
+  return h - spread;
 }
+
+const columnSum = (heights: number[], from: number, to: number): number => heights.slice(from, to).reduce((a, b) => a + b, 0);
 
 const tallest = (heights: number[], cut: number): number => {
   const left = heights.slice(0, cut).reduce((a, b) => a + b, 0);
@@ -148,19 +156,17 @@ function splitColumns(groups: Measured[], zone: FlowZone): { col: FlowZone; grou
   if (zone.w / Math.max(zone.h, 1) <= WIDE || groups.length < 2) {
     return [{ col: zone, groups }];
   }
-  const heights = groups.map((g) => placeGroup(g, 1, zone, 0, null));
-  const half = heights.reduce((a, b) => a + b, 0) / 2;
-  let acc = 0;
-  let cut = 1;
-  heights.forEach((h, i) => {
-    if (acc < half) {
-      cut = i + 1;
-    }
-    acc += h;
-  });
-  cut = keepTogether(groups, heights, Math.min(cut, groups.length - 1));
   const gap = Math.round(zone.w * 0.04);
   const w = (zone.w - gap) / 2;
+  const heights = groups.map((g) => placeGroup(g, 1, { ...zone, w }, 0, null));
+  const total = columnSum(heights, 0, heights.length);
+  let cut = 1;
+  for (let c = 2; c < groups.length; c++) {
+    if (Math.abs(total - 2 * columnSum(heights, 0, c)) < Math.abs(total - 2 * columnSum(heights, 0, cut))) {
+      cut = c;
+    }
+  }
+  cut = keepTogether(groups, heights, cut);
   return [
     { col: { ...zone, w }, groups: groups.slice(0, cut) },
     { col: { ...zone, x: zone.x + w + gap, w }, groups: groups.slice(cut) },
@@ -192,7 +198,9 @@ export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fo
     }
   }
   const out = emptyFlow();
-  columns.forEach((c) => placeColumn(c.groups, lo, c.col, out));
+  const heights = columns.map((c) => placeColumn(c.groups, lo, c.col, null));
+  const end = Math.max(...heights);
+  columns.forEach((c, i) => placeColumn(c.groups, lo, c.col, out, c.groups.length > 1 && columns.length > 1 ? (end - (heights[i] ?? end)) / (c.groups.length - 1) : 0));
   const lines = groups.flatMap((g) => g.lines);
   out.texts.forEach((t, i) => {
     const line = lines[i];
