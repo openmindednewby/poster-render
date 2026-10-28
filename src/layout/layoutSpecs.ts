@@ -51,11 +51,11 @@ export const LAYOUT_SPECS: Partial<Record<LayoutId, OrientedSpec>> = {
   },
   [LayoutId.DesktopSafe]: {
     portrait: { header: [0.08, 0.06, 0.84, 0.24], body: [0.08, 0.31, 0.46, 0.58], picture: [0.56, 0.36, 0.44, 0.64], alignX: 1 },
-    landscape: { header: [0.0625, 0.05, 0.58, 0.44], body: [0.0625, 0.5, 0.58, 0.38], picture: [0.67, 0.0972, 0.29, 0.9028], alignX: 1 },
+    landscape: { header: [0.0625, 0.05, 0.58, 0.44], body: [0.0625, 0.5, 0.58, 0.38], picture: [0.67, 0.0972, 0.29, 0.9028], alignX: 1, logo: [0.4, 0.045, 0.09, 0.17] },
   },
   [LayoutId.DesktopArch]: {
     portrait: { header: [0.08, 0.06, 0.84, 0.2], body: [0.08, 0.27, 0.84, 0.2], picture: [0.14, 0.48, 0.72, 0.52], alignX: 0.5, arch: 0.05 },
-    landscape: { header: [0.07, 0.3, 0.26, 0.45], body: [0.7, 0.25, 0.27, 0.65], picture: DESK_ARCH_PIC, alignX: 0.5, logo: [0.88, 0.04, 0.09, 0.14], arch: 0.05 },
+    landscape: { header: [0.07, 0.3, 0.26, 0.45], body: [0.7, 0.25, 0.27, 0.65], picture: DESK_ARCH_PIC, alignX: 0.5, logo: [0.86, 0.03, 0.11, 0.18], arch: 0.05 },
   },
 };
 

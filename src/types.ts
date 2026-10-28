@@ -111,6 +111,8 @@ export interface RenderReport {
   pictureRegion: Rect;
   textBoxes: Rect[];
   cardBoxes: Rect[];
+  iconBoxes: Rect[];
+  logo: Rect | null;
   backdrop: Rect | null;
 }
 

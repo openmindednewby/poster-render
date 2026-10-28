@@ -15,6 +15,8 @@ export interface FlowGroup {
   card?: { color: string; pad: number };
   rule?: { color: string; height: number };
   uniform?: boolean;
+  icon?: { color: string; glyph: string };
+  keepWithNext?: boolean;
 }
 
 export interface FlowZone extends Rect {
@@ -33,6 +35,7 @@ export interface FlowResult {
   cards: { rect: Rect; color: string }[];
   rules: { rect: Rect; color: string }[];
   bullets: { x: number; y: number; r: number; color: string }[];
+  icons: { rect: Rect; color: string; glyph: string }[];
 }
 
 interface Measured {
@@ -48,10 +51,17 @@ const RULE_WIDTH = 0.9;
 const WIDE = 1.6;
 const MIN_K = 0.02;
 const STEPS = 22;
+const ICON_SCALE = 1.6;
+const ICON_GAP = 0.35;
 
 export const fontOf = (line: FlowLine, size: number, fonts: FontSet): string => `${line.weight} ${size}px ${fonts[line.role]}`;
 
-export const emptyFlow = (): FlowResult => ({ texts: [], cards: [], rules: [], bullets: [] });
+export const emptyFlow = (): FlowResult => ({ texts: [], cards: [], rules: [], bullets: [], icons: [] });
+
+const iconSize = (group: FlowGroup, k: number): number => {
+  const first = group.lines[0];
+  return group.icon && first ? first.size * k * LINE_HEIGHT * ICON_SCALE : 0;
+};
 
 function lineSize(line: FlowLine, width: number, k: number, avail: number): number {
   const indent = line.bullet ? line.size * k * BULLET_INDENT : 0;
@@ -65,6 +75,15 @@ function groupRatio(m: Measured, k: number, avail: number): number | null {
   return Math.min(...m.group.lines.map((line, i) => lineSize(line, m.widths[i] ?? 1, k, avail) / line.size));
 }
 
+function placeIcon(group: FlowGroup, d: number, x: number, textTop: number, textBottom: number, out: FlowResult | null): number {
+  if (!group.icon || d <= 0) {
+    return textBottom;
+  }
+  const textH = textBottom - textTop;
+  out?.icons.push({ rect: { x, y: textTop + Math.max(0, (textH - d) / 2), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph });
+  return textTop + Math.max(textH, d);
+}
+
 function placeGroup(m: Measured, k: number, col: FlowZone, y0: number, out: FlowResult | null): number {
   const { group } = m;
   let y = y0;
@@ -75,10 +94,13 @@ function placeGroup(m: Measured, k: number, col: FlowZone, y0: number, out: Flow
   const pad = group.card ? group.card.pad * k : 0;
   const top = y;
   y += pad;
-  const ratio = groupRatio(m, k, col.w - 2 * pad);
+  const d = iconSize(group, k);
+  const iconIndent = d > 0 ? d * (1 + ICON_GAP) : 0;
+  const avail = col.w - 2 * pad - iconIndent;
+  const ratio = groupRatio(m, k, avail);
   group.lines.forEach((line, i) => {
-    const size = ratio === null ? lineSize(line, m.widths[i] ?? 1, k, col.w - 2 * pad) : line.size * ratio;
-    const indent = line.bullet ? line.size * k * BULLET_INDENT : 0;
+    const size = ratio === null ? lineSize(line, m.widths[i] ?? 1, k, avail) : line.size * ratio;
+    const indent = (line.bullet ? line.size * k * BULLET_INDENT : 0) + iconIndent;
     const w = ((m.widths[i] ?? 0) * size) / line.size;
     const x = col.right ? col.x + col.w - pad - w : col.x + pad + indent;
     out?.texts.push({ text: line.text, font: '', color: line.color, box: { x, y, w, h: size * LINE_HEIGHT } });
@@ -87,6 +109,7 @@ function placeGroup(m: Measured, k: number, col: FlowZone, y0: number, out: Flow
     }
     y += size * LINE_HEIGHT;
   });
+  y = placeIcon(group, d, col.x + pad, top + pad, y, out);
   y += pad;
   if (group.card) {
     out?.cards.unshift({ rect: { x: col.x, y: top, w: col.w, h: y - top }, color: group.card.color });
@@ -100,6 +123,25 @@ function placeColumn(groups: Measured[], k: number, col: FlowZone, out: FlowResu
     h += placeGroup(g, k, col, col.y + h, out);
   }
   return h;
+}
+
+const tallest = (heights: number[], cut: number): number => {
+  const left = heights.slice(0, cut).reduce((a, b) => a + b, 0);
+  const right = heights.slice(cut).reduce((a, b) => a + b, 0);
+  return Math.max(left, right);
+};
+
+function keepTogether(groups: Measured[], heights: number[], cut: number): number {
+  const breaks = (c: number): boolean => groups[c - 1]?.group.keepWithNext === true;
+  let back = cut;
+  while (back > 1 && breaks(back)) {back--;}
+  let fwd = cut;
+  while (fwd < groups.length - 1 && breaks(fwd)) {fwd++;}
+  const candidates = [back, fwd].filter((c) => !breaks(c));
+  if (candidates.length === 0) {
+    return cut;
+  }
+  return candidates.reduce((best, c) => (tallest(heights, c) < tallest(heights, best) ? c : best));
 }
 
 function splitColumns(groups: Measured[], zone: FlowZone): { col: FlowZone; groups: Measured[] }[] {
@@ -116,7 +158,7 @@ function splitColumns(groups: Measured[], zone: FlowZone): { col: FlowZone; grou
     }
     acc += h;
   });
-  cut = Math.min(cut, groups.length - 1);
+  cut = keepTogether(groups, heights, Math.min(cut, groups.length - 1));
   const gap = Math.round(zone.w * 0.04);
   const w = (zone.w - gap) / 2;
   return [

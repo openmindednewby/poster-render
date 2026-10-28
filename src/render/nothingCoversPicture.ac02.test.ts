@@ -30,14 +30,14 @@ describe('render AC-02 nothing covers the picture', () => {
     expect(foreignPixelsInside(bare, mask, hexRgb(PALETTES[doc.palette].background))).toBe(0);
   });
 
-  it.each(COMBOS)('with layout %s on format %s, keeps every text and card box off the picture', (layout, format) => {
+  it.each(COMBOS)('with layout %s on format %s, keeps every text, card and pin box off the picture', (layout, format) => {
     const doc = docFor(layout, format);
 
     const report = render(doc, { dancers: fixtureImage() }, asPoster(newCanvas()));
 
     const pic = report.picture ?? { x: 0, y: 0, w: 0, h: 0 };
     expect(report.textBoxes.length).toBeGreaterThan(0);
-    expect([...report.textBoxes, ...report.cardBoxes].filter((b) => intersects(b, pic))).toEqual([]);
+    expect([...report.textBoxes, ...report.cardBoxes, ...report.iconBoxes].filter((b) => intersects(b, pic))).toEqual([]);
   });
 
   it.each(COMBOS)('with layout %s on format %s and very long text, shrinks every line inside the canvas', (layout, format) => {

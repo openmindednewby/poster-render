@@ -13,6 +13,33 @@ const BASE = 1080;
 const LOGO_SHARE = 0.26;
 const CARD_RADIUS = 0.035;
 const CAP_TOP = 0.15;
+const PIN_HEAD_Y = 0.08;
+const PIN_HEAD_R = 0.19;
+const PIN_TIP_Y = 0.28;
+const PIN_HOLE = 0.42;
+const ARC_START = 0.75;
+const ARC_END = 2.25;
+
+function drawPin(ctx: PosterContext, r: Rect, color: string, glyph: string): void {
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h / 2;
+  const hy = cy - r.w * PIN_HEAD_Y;
+  const rad = r.w * PIN_HEAD_R;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r.w / 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = glyph;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + r.w * PIN_TIP_Y);
+  ctx.arc(cx, hy, rad, Math.PI * ARC_START, Math.PI * ARC_END);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(cx, hy, rad * PIN_HOLE, 0, Math.PI * 2);
+  ctx.fill();
+}
 
 function roundRect(ctx: PosterContext, r: Rect, radius: number): void {
   const rad = Math.min(radius, r.w / 2, r.h / 2);
@@ -41,6 +68,7 @@ function drawFlow(ctx: PosterContext, f: FlowResult, radius: number): void {
     ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
     ctx.fill();
   });
+  f.icons.forEach((i) => drawPin(ctx, i.rect, i.color, i.glyph));
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   f.texts.forEach((t) => {
@@ -124,9 +152,9 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
   const radius = Math.min(width, height) * CARD_RADIUS;
   [head, body, ...sides].forEach((f) => drawFlow(ctx, f, radius));
   const logoImage = doc.logo ? assets[doc.logo.imageId] : undefined;
-  if (logoImage) {
-    const r = placeContain(logoImage, capAligned(zones.logo, head), PictureAnchor.Top, 1, 1);
-    ctx.drawImage(logoImage, r.x, r.y, r.w, r.h);
+  const logo = logoImage ? placeContain(logoImage, geo.logo ? zones.logo : capAligned(zones.logo, head), PictureAnchor.Top, 1, 1) : null;
+  if (logoImage && logo) {
+    ctx.drawImage(logoImage, logo.x, logo.y, logo.w, logo.h);
   }
   const image = doc.picture ? assets[doc.picture.imageId] : undefined;
   const backdrop = image ? archRect(geo) : null;
@@ -144,6 +172,8 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
     pictureRegion: geo.picture,
     textBoxes: [head, body, ...sides].flatMap((f) => f.texts.map((t) => t.box)),
     cardBoxes: body.cards.map((c) => c.rect),
+    iconBoxes: [head, body, ...sides].flatMap((f) => f.icons.map((i) => i.rect)),
+    logo,
     backdrop,
   };
 }

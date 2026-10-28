@@ -27,19 +27,20 @@ export function headerGroups(doc: FlierDoc, p: Palette, u: number): FlowGroup[] 
 }
 
 function itemGroup(item: ListItem, l: Record<string, Line>, u: number): FlowGroup {
-  const lines: FlowLine[] = [l.script?.(item.date, 96) as FlowLine];
+  const lines: FlowLine[] = [l.script?.(item.date, 67) as FlowLine];
   item.schedule.forEach((row) => lines.push(l.strong?.(`${row.label}  ${row.time}`, 42) as FlowLine));
   if (item.price) {
     lines.push(l.accent?.(item.price, 42) as FlowLine);
   }
-  return { lines, gapAfter: 26 * u };
+  return { lines, gapAfter: 48 * u };
 }
 
 function eventGroups(doc: FlierDoc, l: Record<string, Line>, u: number, withPrices: boolean): FlowGroup[] {
   const b = doc.blocks;
   const groups: FlowGroup[] = [];
   b.schedule?.forEach((row) => groups.push({ lines: [l.strong?.(row.label, 66) as FlowLine, l.accent?.(row.time, 60) as FlowLine], gapAfter: 30 * u }));
-  (withPrices ? b.prices : undefined)?.forEach((row) => groups.push({ lines: [l.strong?.(row.amount, 66) as FlowLine, l.accent?.(row.label, 52) as FlowLine], gapAfter: 30 * u }));
+  const prices = (withPrices ? b.prices : undefined) ?? [];
+  prices.forEach((row, i) => groups.push({ lines: [l.strong?.(row.amount, 66) as FlowLine, l.accent?.(row.label, 52) as FlowLine], gapAfter: 30 * u, keepWithNext: i < prices.length - 1 }));
   return groups;
 }
 
@@ -58,19 +59,19 @@ export function flankPriceGroups(doc: FlierDoc, p: Palette, u: number): FlowGrou
   return (doc.blocks.prices ?? []).map((row) => ({ lines: [l.strong?.(row.amount, 110) as FlowLine, l.accent?.(row.label, 48) as FlowLine], gapAfter: 30 * u }));
 }
 
-/** Turns the doc's body blocks into flow groups: venue, schedule or list items, prices, includes card, footer. */
+/** Turns the doc's body blocks into flow groups: venue with its pin, schedule or list items, prices, includes, footer. */
 export function bodyGroups(doc: FlierDoc, p: Palette, u: number, withPrices = true): FlowGroup[] {
   const l = makers(p, u);
   const b = doc.blocks;
   const groups: FlowGroup[] = [];
   const isList = doc.layout === LayoutId.List;
   if (b.venue) {
-    groups.push({ lines: b.venue.map((v) => l.venue?.(v, isList ? 48 : 58) as FlowLine), gapAfter: 40 * u, rule: { color: p.accent, height: 8 * u } });
+    groups.push({ lines: b.venue.map((v) => l.venue?.(v, isList ? 48 : 58) as FlowLine), gapAfter: 40 * u, rule: { color: p.accent, height: 8 * u }, icon: { color: p.accent, glyph: p.background } });
   }
   groups.push(...(isList ? listGroups(doc, l, u) : eventGroups(doc, l, u, withPrices)));
   if (b.includes) {
     const lines = [l.accent?.(b.includes.heading, 38) as FlowLine, ...b.includes.items.map((i) => l.item?.(i, 38) as FlowLine)];
-    groups.push({ lines, gapAfter: 24 * u, card: { color: p.card, pad: 28 * u }, uniform: true });
+    groups.push({ lines, gapAfter: 24 * u, uniform: true });
   }
   if (b.footer) {
     groups.push({ lines: [l.soft?.(b.footer, 34) as FlowLine], gapAfter: 0 });
