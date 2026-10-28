@@ -16,8 +16,11 @@ export interface LayoutGeometry {
 const MARGIN = 0.045;
 const HEADER_PORTRAIT = 0.3;
 const HEADER_LANDSCAPE = 0.36;
-const BOTTOM_HEADER = 0.2;
-const BOTTOM_PICTURE = 0.52;
+const BOTTOM_PICTURE_W = 0.8;
+const BOTTOM_MIN_TOP = 0.25;
+const BOTTOM_HEADER_SHARE = 0.45;
+const BOTTOM_GAP = 40 / 1080;
+const BOTTOM_ASPECT = 0.57;
 const PICTURE_SIDE: Record<string, [number, number]> = {
   [LayoutId.PictureRight]: [0.6, 0.42],
   [LayoutId.PictureLeft]: [0.6, 0.42],
@@ -51,12 +54,15 @@ function side(w: number, h: number, fraction: [number, number]): LayoutGeometry 
 
 function bottom(w: number, h: number): LayoutGeometry {
   const m = r(Math.min(w, h) * MARGIN);
-  const top = r(h * BOTTOM_HEADER);
-  const pic = r(h * BOTTOM_PICTURE);
+  const gap = r(Math.min(w, h) * BOTTOM_GAP);
+  const picW = r(w * BOTTOM_PICTURE_W);
+  const picH = Math.min(r(picW / BOTTOM_ASPECT), h - r(h * BOTTOM_MIN_TOP));
+  const pic = h - picH;
+  const top = m + r((pic - m) * BOTTOM_HEADER_SHARE);
   return {
-    header: { x: m, y: m, w: w - 2 * m, h: top - 2 * m },
-    body: { x: m, y: top, w: w - 2 * m, h: pic - top - m },
-    picture: { x: 0, y: pic, w, h: h - pic },
+    header: { x: m, y: m, w: w - 2 * m, h: top - m },
+    body: { x: m, y: top, w: w - 2 * m, h: pic - gap - top },
+    picture: { x: r((w - picW) / 2), y: pic, w: picW, h: picH },
     alignX: 0.5,
   };
 }

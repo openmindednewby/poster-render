@@ -42,3 +42,14 @@ export function hexRgb(hex: string): number[] {
 }
 
 export type FixtureImage = Image | Canvas;
+
+export const TALL_W = 576;
+export const TALL_H = 1009;
+
+export function tallImage(): Canvas {
+  const c = createCanvas(TALL_W, TALL_H);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = 'rgb(0,255,0)';
+  ctx.fillRect(0, 0, TALL_W, TALL_H);
+  return c;
+}

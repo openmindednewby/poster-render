@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3
+
+- `picture-bottom`: the picture is sized for a tall cut-out (design aspect 0.57): 80% of the width, standing on the bottom edge; the header and body share the top (at least 25% of the height) and shrink to fit. The picture is never cropped.
+
 ## 0.2.2
 
 - Arch flanks: both flank price groups use one size per line, so "per hour" and "Party pass" match.

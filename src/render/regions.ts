@@ -5,7 +5,6 @@ import type { FontSet, PosterContext, Rect } from '../types';
 
 const LINE_HEIGHT = 1.2;
 const BODY_GAP = 40;
-const BOTTOM_SIDE = 0.1;
 
 function flowFlanks(ctx: PosterContext, groups: FlowGroup[], flanks: Rect[], fonts: FontSet): FlowResult[] {
   const half = Math.ceil(groups.length / 2);
@@ -37,12 +36,11 @@ function measuredEnd(f: FlowResult, fallback: number): number {
   return bottoms.length > 0 ? Math.max(...bottoms) : fallback;
 }
 
-/** The picture region; for picture-bottom it starts 40u under the body's measured end and runs to the frame edge. */
+/** The picture region; for picture-bottom it starts 40u under the body's measured end, keeps the geometry's width and runs to the frame edge. */
 export function pictureRegion(layout: LayoutId, geo: LayoutGeometry, body: FlowResult, u: number, frame: { width: number; height: number }): Rect {
   if (layout !== LayoutId.PictureBottom) {
     return geo.picture;
   }
-  const y = Math.ceil(measuredEnd(body, geo.body.y) + BODY_GAP * u);
-  const x = Math.round(frame.width * BOTTOM_SIDE);
-  return { x, y, w: frame.width - 2 * x, h: frame.height - y };
+  const y = Math.min(geo.picture.y, Math.ceil(measuredEnd(body, geo.body.y) + BODY_GAP * u));
+  return { x: geo.picture.x, y, w: geo.picture.w, h: frame.height - y };
 }
