@@ -27,6 +27,9 @@ const PICTURE_SIDE: Record<string, [number, number]> = {
   [LayoutId.PictureLeft]: DEFAULT_SIDE,
   [LayoutId.List]: [0.5, 0.36],
 };
+const SHORT_PORTRAIT = 1.5;
+const SHORT_PICTURE_W = 0.5;
+const SHORT_PICTURE_H = 0.75;
 const ANCHOR_Y: Record<PictureAnchor, number> = { [PictureAnchor.Top]: 0, [PictureAnchor.Center]: 0.5, [PictureAnchor.Bottom]: 1 };
 
 const r = Math.round;
@@ -49,6 +52,21 @@ function side(w: number, h: number, fraction: [number, number]): LayoutGeometry 
     header: { x: m, y: m, w: split - 2 * m, h: top - m },
     picture: { x: split, y: 0, w: w - split, h },
     body: { x: m, y: top + r(m / 2), w: split - 2 * m, h: h - top - r(m / 2) - m },
+    alignX: 1,
+  };
+}
+
+function shortSide(w: number, h: number): LayoutGeometry {
+  const m = r(Math.min(w, h) * MARGIN);
+  const picW = r(w * SHORT_PICTURE_W);
+  const picH = r(h * SHORT_PICTURE_H);
+  const top = r(h * HEADER_PORTRAIT);
+  const textW = w - picW - 2 * m;
+  return {
+    header: { x: m, y: m, w: textW, h: top - 2 * m },
+    body: { x: m, y: top, w: textW, h: h - top - m },
+    picture: { x: w - picW, y: h - picH, w: picW, h: picH },
+    logo: { x: w - picW + m, y: m, w: picW - 2 * m, h: h - picH - 2 * m },
     alignX: 1,
   };
 }
@@ -82,7 +100,7 @@ function fromSpec(spec: NonNullable<(typeof LAYOUT_SPECS)[LayoutId]>['portrait']
 
 const mirror = (rect: Rect, w: number): Rect => ({ ...rect, x: w - rect.x - rect.w });
 
-/** Splits the canvas into header, body and picture regions that never overlap; give narrows the picture-bottom picture. */
+/** Splits the canvas into header, body and picture regions that never overlap; give narrows the picture-bottom picture only. */
 export function geometry(layout: LayoutId, w: number, h: number, give = 0): LayoutGeometry {
   const oriented = LAYOUT_SPECS[layout];
   if (oriented) {
@@ -91,11 +109,12 @@ export function geometry(layout: LayoutId, w: number, h: number, give = 0): Layo
   if (layout === LayoutId.PictureBottom) {
     return bottom(w, h, BOTTOM_PICTURE_W - give);
   }
-  const g = side(w, h, PICTURE_SIDE[layout] ?? DEFAULT_SIDE);
+  const isSide = layout === LayoutId.PictureRight || layout === LayoutId.PictureLeft;
+  const g = isSide && h >= w && h < w * SHORT_PORTRAIT ? shortSide(w, h) : side(w, h, PICTURE_SIDE[layout] ?? DEFAULT_SIDE);
   if (layout !== LayoutId.PictureLeft) {
     return g;
   }
-  return { header: mirror(g.header, w), body: mirror(g.body, w), picture: mirror(g.picture, w), alignX: 1 - g.alignX };
+  return { header: mirror(g.header, w), body: mirror(g.body, w), picture: mirror(g.picture, w), logo: g.logo ? mirror(g.logo, w) : undefined, alignX: 1 - g.alignX };
 }
 
 export interface ContainFit {
