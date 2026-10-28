@@ -61,8 +61,8 @@ export function headerGroups(doc: FlierDoc, p: Palette, u: number): FlowGroup[] 
   return [{ lines: lines.filter((x): x is FlowLine => x !== undefined), gapAfter: 0 }];
 }
 
-function itemGroup(item: ListItem, l: Makers, u: number): FlowGroup {
-  const lines: FlowLine[] = [l.script(item.date, SIZE.itemDate)];
+function itemGroup(item: ListItem, l: Makers, u: number, dateScale: number): FlowGroup {
+  const lines: FlowLine[] = [l.script(item.date, SIZE.itemDate * dateScale)];
   item.schedule.forEach((row) => lines.push(l.strong(`${row.label}  ${row.time}`, SIZE.itemRow)));
   if (item.price) {
     lines.push(l.accent(item.price, SIZE.itemRow));
@@ -74,6 +74,7 @@ export interface BodyOptions {
   withPrices?: boolean;
   compact?: boolean;
   wrap?: boolean;
+  dateScale?: number;
 }
 
 const WRAP_FROM = 14;
@@ -109,8 +110,8 @@ function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions):
   return groups;
 }
 
-function listGroups(doc: FlierDoc, l: Makers, u: number): FlowGroup[] {
-  const groups = (doc.items ?? []).map((item) => itemGroup(item, l, u));
+function listGroups(doc: FlierDoc, l: Makers, u: number, dateScale: number): FlowGroup[] {
+  const groups = (doc.items ?? []).map((item) => itemGroup(item, l, u, dateScale));
   const prices = doc.blocks.prices?.map((row) => l.strong(`${row.amount} ${row.label}`, SIZE.listPrice)) ?? [];
   if (prices.length > 0) {
     groups.push({ lines: prices, gapAfter: GAP.row * u });
@@ -135,7 +136,7 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOp
     const keepWithNext = !isList && (b.schedule?.length ?? 0) > 0;
     groups.push({ lines: b.venue.map((v) => l.venue(v, size)), gapAfter: GAP.venue * u, rule: { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.accent, glyph: p.background }, keepWithNext });
   }
-  groups.push(...(isList ? listGroups(doc, l, u) : eventGroups(doc, l, u, options)));
+  groups.push(...(isList ? listGroups(doc, l, u, options.dateScale ?? 1) : eventGroups(doc, l, u, options)));
   if (b.includes) {
     const lines = [l.accent(b.includes.heading, SIZE.small), ...b.includes.items.map((i) => l.item(i, SIZE.small))].flatMap((line) => wrapped(line, options.wrap));
     groups.push({ lines, gapAfter: GAP.includes * u, uniform: true, keepWithNext: b.footer !== undefined, attachNext: b.footer !== undefined });

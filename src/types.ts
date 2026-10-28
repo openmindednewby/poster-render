@@ -58,6 +58,13 @@ export interface FlierDoc {
   logo?: LogoSlot;
   blocks: FlierBlocks;
   items?: ListItem[];
+  tuning?: PosterTuning;
+}
+
+/** Optional per-theme spacing and size overrides; an absent field keeps the layout default. */
+export interface PosterTuning {
+  headerGap?: number;
+  itemDateScale?: number;
 }
 
 export interface Rect {

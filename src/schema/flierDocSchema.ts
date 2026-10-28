@@ -13,6 +13,9 @@ const MAX_ITEMS = 8;
 const MAX_PRICES = 4;
 const MAX_VENUE = 3;
 const MIN_SCALE = 0.3;
+const MAX_HEADER_GAP = 200;
+const MIN_DATE_SCALE = 0.5;
+const MAX_DATE_SCALE = 2;
 
 const text = (maxLength: number): JsonSchema => ({ type: 'string', minLength: 1, maxLength });
 
@@ -83,6 +86,14 @@ export const flierDocSchema: JsonSchema = {
     },
     logo: { type: 'object', required: ['imageId'], additionalProperties: false, properties: { imageId: text(SHORT) } },
     blocks,
+    tuning: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        headerGap: { type: 'number', minimum: 0, maximum: MAX_HEADER_GAP },
+        itemDateScale: { type: 'number', minimum: MIN_DATE_SCALE, maximum: MAX_DATE_SCALE },
+      },
+    },
     items: {
       type: 'array',
       minItems: 1,

@@ -44,15 +44,26 @@ function splitHeader(header: Rect, hasLogo: boolean): { text: Rect; logo: Rect }
   return { text: { ...header, w: header.w - logoW * 1.1 }, logo: { ...header, x: header.x + header.w - logoW, w: logoW } };
 }
 
+function closeHeaderGap(geo: LayoutGeometry, head: FlowResult, gap: number | undefined, u: number): LayoutGeometry {
+  const { header, body } = geo;
+  const stacked = header.y + header.h <= body.y && header.x < body.x + body.w && body.x < header.x + header.w;
+  if (gap === undefined || !stacked || head.texts.length === 0) {
+    return geo;
+  }
+  const top = Math.round(Math.max(...head.texts.map((t) => t.box.y + t.box.h)) + gap * u);
+  return top < body.y ? { ...geo, body: { ...body, y: top, h: body.h + body.y - top } } : geo;
+}
+
 function flowAll(ctx: PosterContext, input: FitInput, geo: LayoutGeometry, reflow: Reflow): FittedText {
   const { doc, palette, fonts } = input;
   const u = Math.min(input.width, input.height) / BASE;
   const zones = geo.logo ? { text: geo.header, logo: geo.logo } : splitHeader(geo.header, doc.logo !== undefined);
   const head = flow(ctx, headerGroups(doc, palette, u), zones.text, fonts);
   const flanks = geo.flanks ?? [];
-  const body = flow(ctx, bodyGroups(doc, palette, u, { withPrices: flanks.length === 0, compact: reflow.compact, wrap: reflow.wrap }), geo.body, fonts);
+  const tight = closeHeaderGap(geo, head, doc.tuning?.headerGap, u);
+  const body = flow(ctx, bodyGroups(doc, palette, u, { withPrices: flanks.length === 0, compact: reflow.compact, wrap: reflow.wrap, dateScale: doc.tuning?.itemDateScale }), tight.body, fonts);
   const sides = flanks.length > 0 ? equalFlanks(ctx, flankPriceGroups(doc, palette, u), flanks, fonts) : [emptyFlow()];
-  return { geo, zones, head, body, sides };
+  return { geo: tight, zones, head, body, sides };
 }
 
 const smallest = (t: FittedText): number => Math.min(Infinity, ...[t.head, t.body, ...t.sides].flatMap((f) => f.texts.map((x) => x.box.h / LINE_HEIGHT)));
