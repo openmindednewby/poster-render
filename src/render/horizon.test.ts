@@ -1,4 +1,4 @@
-import { BackgroundStyle, FONT_SETS, FontSetId, FormatId, LayoutId, PALETTES, PaletteId, render, validateFlierDoc } from '../index';
+import { BackgroundStyle, FONT_SETS, FontSetId, FormatId, LayoutId, PaletteId, render, validateFlierDoc } from '../index';
 import { docFor } from '../testing/docs';
 import { asPoster, fixtureImage, hexRgb, newCanvas, pixels } from '../testing/fixture';
 
@@ -34,19 +34,19 @@ describe('horizon background', () => {
 
   it('with the horizon background, paints the first sky stop at the top edge', () => {
     const canvas = newCanvas();
+    const topSky = '#bfd3d8';
 
     render(horizonDoc(), { dancers: fixtureImage() }, asPoster(canvas));
 
-    const sky = PALETTES[PaletteId.GoldenHorizon].sky ?? [];
-    expect(close(rgbAt(canvas, 2, 0), hexRgb(sky[0]?.[1] ?? ''))).toBe(true);
+    expect(close(rgbAt(canvas, 2, 0), hexRgb(topSky))).toBe(true);
   });
 
   it('with the horizon background, paints the last sky stop at the bottom edge, no sea band', () => {
     const canvas = newCanvas();
+    const bottomSky = '#eadccb';
 
     render(horizonDoc(), { dancers: fixtureImage() }, asPoster(canvas));
 
-    const sky = PALETTES[PaletteId.GoldenHorizon].sky ?? [];
-    expect(close(rgbAt(canvas, 2, canvas.height - 1), hexRgb(sky[sky.length - 1]?.[1] ?? ''))).toBe(true);
+    expect(close(rgbAt(canvas, 2, canvas.height - 1), hexRgb(bottomSky))).toBe(true);
   });
 });

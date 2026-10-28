@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- FLIER-2 "Flier Studio follow-ups" theme 2 Golden hour: `GoldenHorizon` palette, Coastal font set, Horizon sky-only background.
+- Breaking for custom contexts: `PosterContext.createLinearGradient` is now required (the Horizon sky is a linear gradient). A custom `PosterContext` must implement it.
+
 ## 0.2.7
 
 - P-B "Phone arch": the title block starts at the top margin (0.05h) instead of under a clock zone; the arch picture starts at 0.47h and grows.
