@@ -12,6 +12,7 @@ import { pictureRegion } from './regions';
 import type { FlierDoc, PosterAssets, PosterCanvas, PosterContext, Rect, RenderReport } from '../types';
 
 const BASE = 1080;
+const NO_SPACING = '0px';
 const CARD_RADIUS = 0.035;
 const CAP_TOP = 0.15;
 const PIN_HEAD_Y = 0.08;
@@ -75,7 +76,13 @@ function drawFlow(ctx: PosterContext, f: FlowResult, radius: number): void {
   f.texts.forEach((t) => {
     ctx.font = t.font;
     ctx.fillStyle = t.color;
+    if (t.spacing !== undefined) {
+      ctx.letterSpacing = t.spacing;
+    }
     ctx.fillText(t.text, t.box.x, t.box.y);
+    if (t.spacing !== undefined) {
+      ctx.letterSpacing = NO_SPACING;
+    }
   });
 }
 

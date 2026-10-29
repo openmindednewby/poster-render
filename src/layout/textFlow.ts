@@ -1,4 +1,6 @@
+import { LineAlign } from '../enums/LineAlign';
 import type { FontSet, PosterContext, Rect } from '../types';
+import { BULLET_INDENT, LINE_HEIGHT, groupBox, indented, sizeTable, type Measured, type SizeTable } from './lineSizes';
 
 export interface FlowLine {
   text: string;
@@ -8,6 +10,12 @@ export interface FlowLine {
   color: string;
   bullet?: string;
   hang?: boolean;
+  family?: string;
+  italic?: boolean;
+  spacing?: number;
+  align?: LineAlign;
+  widthTie?: number;
+  sizeTie?: number;
 }
 
 export interface FlowGroup {
@@ -31,6 +39,7 @@ export interface TextOp {
   font: string;
   color: string;
   box: Rect;
+  spacing?: string;
 }
 
 export interface FlowResult {
@@ -41,13 +50,6 @@ export interface FlowResult {
   icons: { rect: Rect; color: string; glyph: string }[];
 }
 
-interface Measured {
-  group: FlowGroup;
-  widths: number[];
-}
-
-const LINE_HEIGHT = 1.2;
-const BULLET_INDENT = 1.1;
 const BULLET_RADIUS = 0.2;
 const RULE_GAP = 2.5;
 const RULE_WIDTH = 0.9;
@@ -57,31 +59,14 @@ const TWO_COLUMN_MIN = 0.75;
 const TWO_COLUMN_GAIN = 1.15;
 const MIN_K = 0.02;
 const STEPS = 22;
-const ICON_SCALE = 1.6;
-const ICON_GAP = 0.35;
+const NO_SPACING = '0px';
 
-export const fontOf = (line: FlowLine, size: number, fonts: FontSet): string => `${line.weight} ${size}px ${fonts[line.role]}`;
-
-export const emptyFlow = (): FlowResult => ({ texts: [], cards: [], rules: [], bullets: [], icons: [] });
-
-const indented = (line: FlowLine): boolean => line.bullet !== undefined || line.hang === true;
-
-const iconSize = (group: FlowGroup, k: number): number => {
-  const first = group.lines[0];
-  return group.icon && first ? first.size * k * LINE_HEIGHT * ICON_SCALE : 0;
+export const fontOf = (line: FlowLine, size: number, fonts: FontSet): string => {
+  const family = line.family === undefined ? fonts[line.role] : `"${line.family}", ${fonts[line.role]}`;
+  return `${line.italic === true ? 'italic ' : ''}${line.weight} ${size}px ${family}`;
 };
 
-function lineSize(line: FlowLine, width: number, k: number, avail: number): number {
-  const indent = indented(line) ? line.size * k * BULLET_INDENT : 0;
-  return Math.max(0, Math.min(line.size * k, (line.size * (avail - indent)) / Math.max(width, 1)));
-}
-
-function groupRatio(m: Measured, k: number, avail: number): number | null {
-  if (!m.group.uniform) {
-    return null;
-  }
-  return Math.min(...m.group.lines.map((line, i) => lineSize(line, m.widths[i] ?? 1, k, avail) / line.size));
-}
+export const emptyFlow = (): FlowResult => ({ texts: [], cards: [], rules: [], bullets: [], icons: [] });
 
 interface IconBox {
   d: number;
@@ -94,12 +79,37 @@ interface GroupPlace {
   k: number;
   col: FlowZone;
   y0: number;
+  sizes: number[];
 }
 
 interface ColumnPlace {
   k: number;
   col: FlowZone;
+  table: SizeTable;
   spread?: number;
+}
+
+interface LineBox {
+  col: FlowZone;
+  pad: number;
+  indent: number;
+  w: number;
+}
+
+function lineX(line: FlowLine, box: LineBox): number {
+  const { col, pad, indent, w } = box;
+  const left = col.x + pad + indent;
+  const right = col.x + col.w - pad - w;
+  switch (line.align) {
+    case LineAlign.Left:
+      return left;
+    case LineAlign.Right:
+      return right;
+    case LineAlign.Center:
+      return left + (right - left) / 2;
+    default:
+      return col.right ? right : left;
+  }
 }
 
 function placeIcon(group: FlowGroup, box: IconBox, out: FlowResult | null): number {
@@ -113,25 +123,21 @@ function placeIcon(group: FlowGroup, box: IconBox, out: FlowResult | null): numb
 }
 
 function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number {
-  const { k, col, y0 } = at;
+  const { k, col, y0, sizes } = at;
   const { group } = m;
   let y = y0;
   if (group.rule) {
     out?.rules.push({ rect: { x: col.x, y, w: col.w * RULE_WIDTH, h: group.rule.height * k }, color: group.rule.color });
     y += group.rule.height * k * RULE_GAP;
   }
-  const pad = group.card ? group.card.pad * k : 0;
+  const { pad, d, iconIndent } = groupBox(group, k, col.w);
   const top = y;
   y += pad;
-  const d = iconSize(group, k);
-  const iconIndent = d > 0 ? d * (1 + ICON_GAP) : 0;
-  const avail = col.w - 2 * pad - iconIndent;
-  const ratio = groupRatio(m, k, avail);
   group.lines.forEach((line, i) => {
-    const size = ratio === null ? lineSize(line, m.widths[i] ?? 1, k, avail) : line.size * ratio;
+    const size = sizes[i] ?? 0;
     const indent = (indented(line) ? line.size * k * BULLET_INDENT : 0) + iconIndent;
     const w = ((m.widths[i] ?? 0) * size) / line.size;
-    const x = col.right ? col.x + col.w - pad - w : col.x + pad + indent;
+    const x = lineX(line, { col, pad, indent, w });
     out?.texts.push({ text: line.text, font: '', color: line.color, box: { x, y, w, h: size * LINE_HEIGHT } });
     if (line.bullet && out) {
       out.bullets.push({ x: col.x + pad + size * BULLET_RADIUS, y: y + (size * LINE_HEIGHT) / 2, r: size * BULLET_RADIUS, color: line.bullet });
@@ -152,10 +158,10 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
 }
 
 function placeColumn(groups: Measured[], at: ColumnPlace, out: FlowResult | null): number {
-  const { k, col, spread = 0 } = at;
+  const { k, col, table, spread = 0 } = at;
   let h = 0;
   groups.forEach((g, i) => {
-    h += placeGroup(g, { k, col, y0: col.y + h }, out);
+    h += placeGroup(g, { k, col, y0: col.y + h, sizes: table.get(g) ?? [] }, out);
     if (i < groups.length - 1 && g.group.attachNext !== true) {
       h += spread;
     }
@@ -191,7 +197,8 @@ type Columns = { col: FlowZone; groups: Measured[] }[];
 function splitColumns(groups: Measured[], zone: FlowZone): Columns {
   const gap = Math.round(zone.w * COLUMN_GAP);
   const w = (zone.w - gap) / 2;
-  const heights = groups.map((g) => placeGroup(g, { k: 1, col: { ...zone, w }, y0: 0 }, null));
+  const table = sizeTable(groups, 1, w);
+  const heights = groups.map((g) => placeGroup(g, { k: 1, col: { ...zone, w }, y0: 0, sizes: table.get(g) ?? [] }, null));
   const total = columnSum(heights, 0, heights.length);
   let cut = 1;
   for (let c = 2; c < groups.length; c++) {
@@ -206,8 +213,13 @@ function splitColumns(groups: Measured[], zone: FlowZone): Columns {
   ];
 }
 
+const tableFor = (columns: Columns, k: number): SizeTable => sizeTable(columns.flatMap((c) => c.groups), k, columns[0]?.col.w ?? 0);
+
 function largestK(columns: Columns, zoneH: number): number {
-  const fits = (k: number): boolean => columns.every((c) => placeColumn(c.groups, { k, col: c.col }, null) <= zoneH);
+  const fits = (k: number): boolean => {
+    const table = tableFor(columns, k);
+    return columns.every((c) => placeColumn(c.groups, { k, col: c.col, table }, null) <= zoneH);
+  };
   let lo = MIN_K;
   let hi = 1;
   if (fits(1)) {
@@ -236,27 +248,39 @@ function bestColumns(measured: Measured[], zone: FlowZone): { columns: Columns; 
   return forced || k2 > k1 * TWO_COLUMN_GAIN ? { columns: split, k: k2 } : { columns: single, k: k1 };
 }
 
+function measure(ctx: PosterContext, line: FlowLine, fonts: FontSet): number {
+  ctx.font = fontOf(line, line.size, fonts);
+  if (line.spacing === undefined) {
+    return ctx.measureText(line.text).width;
+  }
+  ctx.letterSpacing = `${line.spacing * line.size}px`;
+  const width = ctx.measureText(line.text).width;
+  ctx.letterSpacing = NO_SPACING;
+  return width;
+}
+
 /** Lays groups out in the zone, shrinking every size by one factor until all text fits; never overflows. */
 export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fonts: FontSet): FlowResult {
   const measured = groups.map((group) => ({
     group,
-    widths: group.lines.map((line) => {
-      ctx.font = fontOf(line, line.size, fonts);
-      return ctx.measureText(line.text).width;
-    }),
+    widths: group.lines.map((line) => measure(ctx, line, fonts)),
   }));
   const { columns, k: lo } = bestColumns(measured, zone);
   const out = emptyFlow();
-  const heights = columns.map((c) => placeColumn(c.groups, { k: lo, col: c.col }, null));
+  const table = tableFor(columns, lo);
+  const heights = columns.map((c) => placeColumn(c.groups, { k: lo, col: c.col, table }, null));
   const end = Math.max(...heights);
   columns.forEach((c, i) => {
     const gaps = spreadGaps(c.groups);
-    placeColumn(c.groups, { k: lo, col: c.col, spread: gaps > 0 && columns.length > 1 ? (end - (heights[i] ?? end)) / gaps : 0 }, out);
+    placeColumn(c.groups, { k: lo, col: c.col, table, spread: gaps > 0 && columns.length > 1 ? (end - (heights[i] ?? end)) / gaps : 0 }, out);
   });
   const lines = groups.flatMap((g) => g.lines);
   out.texts.forEach((t, i) => {
     const line = lines[i];
     t.font = line ? fontOf(line, t.box.h / LINE_HEIGHT, fonts) : t.font;
+    if (line?.spacing !== undefined) {
+      t.spacing = `${line.spacing * (t.box.h / LINE_HEIGHT)}px`;
+    }
   });
   return out;
 }

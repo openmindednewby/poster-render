@@ -15,6 +15,14 @@ export class FlierDocError extends Error {
   }
 }
 
+function sameLineTies(doc: FlierDoc): number[] {
+  const ties: unknown = doc.lineTies;
+  if (!Array.isArray(ties)) {
+    return [];
+  }
+  return ties.flatMap((tie: { lines?: unknown }, i) => (Array.isArray(tie?.lines) && tie.lines.length === 2 && tie.lines[0] === tie.lines[1] ? [i] : []));
+}
+
 /** Checks any input (form, preset file, LLM output) against the FlierDoc schema; errors read "path: problem". */
 export function validateFlierDoc(input: unknown): FlierDocResult {
   if (typeName(input) !== 'object') {
@@ -26,6 +34,7 @@ export function validateFlierDoc(input: unknown): FlierDocResult {
   if (doc.layout === LayoutId.List && (doc.items === undefined || doc.items.length === 0)) {
     errors.push('items: layout "list" needs at least one item');
   }
+  sameLineTies(doc).forEach((i) => errors.push(`lineTies[${i}].lines: must name two different lines`));
   return errors.length === 0 ? { ok: true, doc } : { ok: false, errors };
 }
 

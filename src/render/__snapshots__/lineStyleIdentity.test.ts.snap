@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`render without line styles with layout arch on desktop and no line style, draws the 0.4.0 pixels 1`] = `"66809b34da192818306de968bcb18fab9db88216c9275c4bd87db224da55cd56"`;
+
+exports[`render without line styles with layout arch on phone and no line style, draws the 0.4.0 pixels 1`] = `"9f4e4d02a9d4b70259ac8d8a5836ec14b92559a68ce627ef3508f497f42fa5c7"`;
+
+exports[`render without line styles with layout arch on post and no line style, draws the 0.4.0 pixels 1`] = `"e32657fdc262f29e4e426967a0e15f8f06e5395cccc6faa555fcb106307d5394"`;
+
+exports[`render without line styles with layout arch on square and no line style, draws the 0.4.0 pixels 1`] = `"655f36bccef5009aa1df8bbe7aaa08422492d36dece6e4af874c04ab3ecbac5f"`;
+
+exports[`render without line styles with layout arch on story and no line style, draws the 0.4.0 pixels 1`] = `"57057d7c91f82a44c256de69b5e97c190ab64766910ea22f013c481a14401e5a"`;
+
+exports[`render without line styles with layout desktop-arch on desktop and no line style, draws the 0.4.0 pixels 1`] = `"bc9878a12fd84caa554acf0c8085c65d0c1ece9d7408228b3e6bedc5ab2c02ec"`;
+
+exports[`render without line styles with layout desktop-arch on phone and no line style, draws the 0.4.0 pixels 1`] = `"4c6c8d9a9af073111c4d76b78329b798a6343ddd87c0c3ed79ea93a708676378"`;
+
+exports[`render without line styles with layout desktop-arch on post and no line style, draws the 0.4.0 pixels 1`] = `"9423de7b0279b31cba66fdd6e55bcea55575b6979e8351c3a38012980f04ffc0"`;
+
+exports[`render without line styles with layout desktop-arch on square and no line style, draws the 0.4.0 pixels 1`] = `"c5c49d72e0014345a88a8d36abd30d15da4e24a14bb48972d68749f045492641"`;
+
+exports[`render without line styles with layout desktop-arch on story and no line style, draws the 0.4.0 pixels 1`] = `"dd0a4c03e3a403be03812bce04747000dc5cc4bcb93283ddb9140d7a1a609f58"`;
+
+exports[`render without line styles with layout desktop-safe on desktop and no line style, draws the 0.4.0 pixels 1`] = `"2f8b127218b68fd966a29e7d205b45bae3d54e9adb65e7fadf338d23c2159dc5"`;
+
+exports[`render without line styles with layout desktop-safe on phone and no line style, draws the 0.4.0 pixels 1`] = `"03af0de9d617ad17e1a386082824ea4cab74de6ae6e039cb55bca8f10eff2a5a"`;
+
+exports[`render without line styles with layout desktop-safe on post and no line style, draws the 0.4.0 pixels 1`] = `"07a2de885dfce9c00705cfadd889baeab99c507e939a72b32088aa304e90beba"`;
+
+exports[`render without line styles with layout desktop-safe on square and no line style, draws the 0.4.0 pixels 1`] = `"4e7803b806d2bf55f422206d2ed6aa78d7555515c96e2a2f08b0da24be373d70"`;
+
+exports[`render without line styles with layout desktop-safe on story and no line style, draws the 0.4.0 pixels 1`] = `"a342f1ca30c45b6fad5d72b64d26a7f776b88c35a85d2eea73b8cba90f80f52c"`;
+
+exports[`render without line styles with layout list on desktop and no line style, draws the 0.4.0 pixels 1`] = `"75ba23ad3e0cc5b25d105daae4e07ac0ab357f3902061c904e346d8a8204f05e"`;
+
+exports[`render without line styles with layout list on phone and no line style, draws the 0.4.0 pixels 1`] = `"d0b1d4331189d89d3fab45803f641588e009b6a4817e37c607506d340c454aec"`;
+
+exports[`render without line styles with layout list on post and no line style, draws the 0.4.0 pixels 1`] = `"d1be89427af2548635b29c082068835b08cfb01b29ac6de926a9c7c00f464c25"`;
+
+exports[`render without line styles with layout list on square and no line style, draws the 0.4.0 pixels 1`] = `"4e8134a071264cf9883d5db442a9ca3d15396bc5a5d111abf9694c015ac14164"`;
+
+exports[`render without line styles with layout list on story and no line style, draws the 0.4.0 pixels 1`] = `"8fb2b1a9632032c817eb8ef64b1d8f9517da774a5a53359403ab3d8dbf5c9e0e"`;
+
+exports[`render without line styles with layout phone-arch on desktop and no line style, draws the 0.4.0 pixels 1`] = `"818fea3205f05691fd34203250cbcbe62f02e0ad7532c678ed09ed65f7627466"`;
+
+exports[`render without line styles with layout phone-arch on phone and no line style, draws the 0.4.0 pixels 1`] = `"d13bd6f28529b7eef26fe14b0802ae2f8cebf2061168d45933e54e0a663bffd9"`;
+
+exports[`render without line styles with layout phone-arch on post and no line style, draws the 0.4.0 pixels 1`] = `"9dc926ed9a6e096693a54806249dadb06fca4ea3cc7de789c7f982212b0ab142"`;
+
+exports[`render without line styles with layout phone-arch on square and no line style, draws the 0.4.0 pixels 1`] = `"2ec415eb79e4aabcddf3f7ee94ca789745db180e84a7663a9ff495fc0645a087"`;
+
+exports[`render without line styles with layout phone-arch on story and no line style, draws the 0.4.0 pixels 1`] = `"ffb2fe729a1124b7e1aecc7006f4a70ed9241f2727f10c86937b57584a404029"`;
+
+exports[`render without line styles with layout phone-clock-safe on desktop and no line style, draws the 0.4.0 pixels 1`] = `"f50c34ada149eb93e583c3c076e678306933e19ba80bd2e6ff5ebe6670acd32a"`;
+
+exports[`render without line styles with layout phone-clock-safe on phone and no line style, draws the 0.4.0 pixels 1`] = `"99b6616580bf5076a9c01398f057391ac58b72244a477e7ab3cdc48349465a3c"`;
+
+exports[`render without line styles with layout phone-clock-safe on post and no line style, draws the 0.4.0 pixels 1`] = `"44a517794898059a44ea8acd8a6ac39b75ac1c6b58fc9b828ed99903843b2715"`;
+
+exports[`render without line styles with layout phone-clock-safe on square and no line style, draws the 0.4.0 pixels 1`] = `"1f9fd6314bbf27d83209f8c4311843d600ed3fe736b9acfcdc0006e5d3bde4ad"`;
+
+exports[`render without line styles with layout phone-clock-safe on story and no line style, draws the 0.4.0 pixels 1`] = `"0a6ab13ff4700d7a0a6eccdecd95ee8550debeab34660be4641cc1cd97bd837c"`;
+
+exports[`render without line styles with layout picture-bottom on desktop and no line style, draws the 0.4.0 pixels 1`] = `"b958acd27c8cef1ae1b2aac7ce8882614bd68ba298ffb8ac77df793a11a41d0a"`;
+
+exports[`render without line styles with layout picture-bottom on phone and no line style, draws the 0.4.0 pixels 1`] = `"76f2b8e14329af1ff837bb42deb3290060ca1e631deb848883dbb92c2bd3c450"`;
+
+exports[`render without line styles with layout picture-bottom on post and no line style, draws the 0.4.0 pixels 1`] = `"9ac0b38679c4a21fa485c159dedb6a2f88e39d424149ea8adaf23018409c7e71"`;
+
+exports[`render without line styles with layout picture-bottom on square and no line style, draws the 0.4.0 pixels 1`] = `"849a88026f5c45caeccd236b25fbca42bc33737d987d2bfb7df2560fc3149764"`;
+
+exports[`render without line styles with layout picture-bottom on story and no line style, draws the 0.4.0 pixels 1`] = `"d3d5e15c169759df4410a9097597f487450633996dab324d7c53986af1ba9ffd"`;
+
+exports[`render without line styles with layout picture-left on desktop and no line style, draws the 0.4.0 pixels 1`] = `"d398d3f3e633389802e9e3de5f44e4a51428560a74c34b3d38d5d0d239445d36"`;
+
+exports[`render without line styles with layout picture-left on phone and no line style, draws the 0.4.0 pixels 1`] = `"559230df7fd30859f8555fe6b27c952551aa4303bab2494b6d336bf4b3346c5b"`;
+
+exports[`render without line styles with layout picture-left on post and no line style, draws the 0.4.0 pixels 1`] = `"e395f0598ea2b744f10e92cb151a5170d9244572f3e4e4cc3b5dedd685dace98"`;
+
+exports[`render without line styles with layout picture-left on square and no line style, draws the 0.4.0 pixels 1`] = `"647271e85ceebbb2107c7d9b516dafa17df9ad77c97015fd96cf08975bf1347b"`;
+
+exports[`render without line styles with layout picture-left on story and no line style, draws the 0.4.0 pixels 1`] = `"46caeb68069989555fa0faadad27045581ee0acc69e1567c8f580f8399daaa4d"`;
+
+exports[`render without line styles with layout picture-right on desktop and no line style, draws the 0.4.0 pixels 1`] = `"f4edb1c6eb40234106ba755feb59dcf326ef7724f7fd8c084c17da5cfb7818da"`;
+
+exports[`render without line styles with layout picture-right on phone and no line style, draws the 0.4.0 pixels 1`] = `"e51d70b70e749b54520b8071c89868bd420c5a2adaa030e713150cf724470c9c"`;
+
+exports[`render without line styles with layout picture-right on post and no line style, draws the 0.4.0 pixels 1`] = `"5820b825a2fc2e812c89f1466f6c0af0ff57d63ef8179d48794b27ba541d1c26"`;
+
+exports[`render without line styles with layout picture-right on square and no line style, draws the 0.4.0 pixels 1`] = `"0fa6797c044c47ced589a73bf705a9dba06ef8242b0d370bb0f3be01594ef1c5"`;
+
+exports[`render without line styles with layout picture-right on story and no line style, draws the 0.4.0 pixels 1`] = `"1029fde2626cbfb59e067e1beebed9ec3eb4c263c209cdbf8726562bcb6b52e4"`;

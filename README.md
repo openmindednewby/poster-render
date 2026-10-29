@@ -48,6 +48,21 @@ The font sets name CSS families (`FONT_SETS`). The host loads them before `rende
 
 Every text run is at least 30px at a 1080 short edge (40px on desktop 2560x1440). When a layout cannot fit its text at the floor, the picture gives space to the text.
 
+## Per-line style and ties
+
+```ts
+import { LineAlign, sameSize, sameWidth } from '@dloizides/poster-render';
+
+let doc = { ...base, lineStyles: { footer: { font: 'Georgia', sizeScale: 1.2, color: '#1f2a44', weight: 600, italic: true, letterSpacing: 0.05, align: LineAlign.Center } } };
+doc = sameWidth(doc, 'title', 'titleBottom');
+doc = sameSize(doc, 'venue.1', 'footer');
+```
+
+- Keys: `title`, `titleBottom`, `script`, `footer`, `includes.heading`, `includes.items.N`, `venue.N`, `schedule.N.label|time`, `prices.N.amount|label`, `items.N.date|price|schedule.M` (`LINE_KEY_PATTERN`).
+- When rows are set on one line (compact), the merged row takes the style of `schedule.N.label` / `prices.N.amount`.
+- A width tie grows the narrower line to the wider one, capped at the column; a size tie takes the larger size where both still fit. Ties act inside one text zone (header, body or a flank).
+- A doc without `lineStyles` and `lineTies` renders exactly as before.
+
 ## Schema version policy
 
 `FlierDoc.version` is `1`. A field added as optional keeps version 1; a removed, renamed or retyped field raises the version and `validateFlierDoc` rejects the other version with `version: must be 1 (got N)`. A package major release goes with a new doc version.

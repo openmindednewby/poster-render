@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0
+
+- FLIER-2 "Flier Studio follow-ups" AC-38/39/40 (D25, D26, D29): optional `FlierDoc.lineStyles`, a per-line override keyed by line path (`title`, `venue.1`, `schedule.0.time`, `items.2.date`, see `LINE_KEY_PATTERN`) with `font`, `sizeScale`, `color`, `weight`, `italic`, `letterSpacing` (em) and `align` (`LineAlign`).
+- Optional `FlierDoc.lineTies` plus helpers `sameWidth(doc, a, b)` (drawn widths equal within 1px, grown to the wider, inside the margins) and `sameSize(doc, a, b)` (one font size). Ties are resolved at layout time, so a theme or font switch keeps them.
+- `validateFlierDoc` checks both (own keys only, so `__proto__` is rejected); the validator now supports `pattern`, `propertyNames`, schema-valued `additionalProperties` and `boolean`.
+- `PosterContext.letterSpacing` is optional; it is only set when a line has letter spacing.
+- Docs without `lineStyles`/`lineTies` render pixel-identical to 0.4.0 (sha256 of every layout x format pinned in a snapshot).
+
 ## 0.4.0
 
 - FLIER-2 "Flier Studio follow-ups" D6 polish: optional `FlierDoc.tuning` with `headerGap` (closes the empty band between a stacked header and the body) and `itemDateScale` (list date script size). Docs without `tuning` render pixel-identical to 0.3.0.

@@ -5,6 +5,7 @@ import { LayoutId } from '../enums/LayoutId';
 import { PaletteId } from '../enums/PaletteId';
 import { PictureAnchor } from '../enums/PictureAnchor';
 import type { JsonSchema } from './jsonSchemaTypes';
+import { lineStylesSchema, lineTiesSchema } from './lineStyleSchema';
 
 const SHORT = 60;
 const LINE = 120;
@@ -94,6 +95,8 @@ export const flierDocSchema: JsonSchema = {
         itemDateScale: { type: 'number', minimum: MIN_DATE_SCALE, maximum: MAX_DATE_SCALE },
       },
     },
+    lineStyles: lineStylesSchema,
+    lineTies: lineTiesSchema,
     items: {
       type: 'array',
       minItems: 1,

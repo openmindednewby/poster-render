@@ -10,7 +10,7 @@ export const typeName = (v: unknown): string => {
 const join = (path: string, key: string): string => (path === '' ? key : `${path}.${key}`);
 const show = (v: unknown): string => JSON.stringify(v) ?? typeName(v);
 
-const ARTICLE: Record<string, string> = { object: 'an object', array: 'an array', string: 'a string', number: 'a number', integer: 'an integer' };
+const ARTICLE: Record<string, string> = { object: 'an object', array: 'an array', string: 'a string', number: 'a number', integer: 'an integer', boolean: 'a boolean' };
 
 function matchesType(schema: JsonSchema, value: unknown): boolean {
   switch (schema.type) {
@@ -31,6 +31,9 @@ function checkString(schema: JsonSchema, value: string, path: string, errors: st
   }
   if (schema.maxLength !== undefined && value.length > schema.maxLength) {
     errors.push(`${path}: must be at most ${schema.maxLength} characters (got ${value.length})`);
+  }
+  if (schema.pattern !== undefined && !new RegExp(schema.pattern).test(value)) {
+    errors.push(`${path}: has an invalid format`);
   }
 }
 
@@ -57,6 +60,15 @@ function checkArray(schema: JsonSchema, value: unknown[], path: string, errors: 
   }
 }
 
+function extraSchema(schema: JsonSchema, key: string): JsonSchema | undefined {
+  const extra = schema.additionalProperties;
+  if (typeof extra !== 'object') {
+    return undefined;
+  }
+  const names = schema.propertyNames?.pattern;
+  return names === undefined || new RegExp(names).test(key) ? extra : undefined;
+}
+
 function checkObject(schema: JsonSchema, value: Record<string, unknown>, path: string, errors: string[]): void {
   const props = schema.properties ?? {};
   for (const key of schema.required ?? []) {
@@ -65,9 +77,9 @@ function checkObject(schema: JsonSchema, value: Record<string, unknown>, path: s
     }
   }
   for (const [key, child] of Object.entries(value)) {
-    const childSchema = Object.hasOwn(props, key) ? props[key] : undefined;
+    const childSchema = Object.hasOwn(props, key) ? props[key] : extraSchema(schema, key);
     if (childSchema === undefined) {
-      if (schema.additionalProperties === false) {
+      if (schema.additionalProperties !== undefined && schema.additionalProperties !== true) {
         errors.push(`${join(path, key)}: is not allowed`);
       }
     } else if (child !== undefined) {

@@ -2,6 +2,8 @@ import type { BackgroundStyle } from './enums/BackgroundStyle';
 import type { FontSetId } from './enums/FontSetId';
 import type { FormatId } from './enums/FormatId';
 import type { LayoutId } from './enums/LayoutId';
+import type { LineAlign } from './enums/LineAlign';
+import type { LineTieKind } from './enums/LineTieKind';
 import type { PaletteId } from './enums/PaletteId';
 import type { PictureAnchor } from './enums/PictureAnchor';
 
@@ -59,6 +61,28 @@ export interface FlierDoc {
   blocks: FlierBlocks;
   items?: ListItem[];
   tuning?: PosterTuning;
+  lineStyles?: Record<LineKey, LineStyle | undefined>;
+  lineTies?: LineTie[];
+}
+
+/** A text line path such as "title", "venue.1", "schedule.0.time" or "items.2.date" (see LINE_KEY_PATTERN). */
+export type LineKey = string;
+
+/** Optional per-line overrides of the theme; an absent field keeps the theme value. letterSpacing is in em. */
+export interface LineStyle {
+  font?: string;
+  sizeScale?: number;
+  color?: string;
+  weight?: number;
+  italic?: boolean;
+  letterSpacing?: number;
+  align?: LineAlign;
+}
+
+/** Two lines drawn at one width (width) or one font size (size). */
+export interface LineTie {
+  kind: LineTieKind;
+  lines: [LineKey, LineKey];
 }
 
 /** Optional per-theme spacing and size overrides; an absent field keeps the layout default. */
@@ -95,6 +119,7 @@ export interface PosterContext {
   textAlign: string;
   textBaseline: string;
   globalAlpha: number;
+  letterSpacing?: string;
   save(): void;
   restore(): void;
   fillRect(x: number, y: number, w: number, h: number): void;
