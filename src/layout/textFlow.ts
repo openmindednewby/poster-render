@@ -28,7 +28,7 @@ export interface FlowGroup {
   ruleBelow?: boolean;
   ruleAbove?: boolean;
   uniform?: boolean;
-  icon?: { color: string; glyph: string; kind?: RowIcon; size?: number; bare?: boolean };
+  icon?: { color: string; glyph: string; kind?: RowIcon; size?: number; bare?: boolean; gap?: number; shift?: number; centre?: boolean };
   keepWithNext?: boolean;
   attachNext?: boolean;
 }
@@ -121,7 +121,7 @@ function placeIcon(group: FlowGroup, box: IconBox, out: FlowResult | null): numb
     return bottom;
   }
   const textH = bottom - top;
-  out?.icons.push({ rect: { x, y: top + Math.max(0, (textH - d) / 2), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph, kind: group.icon.kind, bare: group.icon.bare });
+  out?.icons.push({ rect: { x, y: top + Math.max(0, (textH - d) / 2) + (group.icon.shift ?? 0), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph, kind: group.icon.kind, bare: group.icon.bare });
   return top + Math.max(textH, d);
 }
 
@@ -136,6 +136,10 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
   const { pad, d, iconIndent } = groupBox(group, k, col.w);
   const top = y;
   y += pad;
+  if (group.icon?.centre === true) {
+    const textH = group.lines.reduce((h, line, i) => h + (sizes[i] ?? 0) * LINE_HEIGHT + (i < group.lines.length - 1 ? (line.gapAfter ?? 0) * k : 0), 0);
+    y += Math.max(0, (d - textH) / 2);
+  }
   group.lines.forEach((line, i) => {
     const size = sizes[i] ?? 0;
     const indent = (indented(line) ? line.size * k * BULLET_INDENT : 0) + iconIndent;

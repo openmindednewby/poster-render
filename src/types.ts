@@ -59,7 +59,8 @@ export interface RowTheme {
   icons?: { schedule?: RowIcon[]; prices?: RowIcon[]; size?: number };
   dividers?: { thickness: number; color?: string; gap?: number; toPicture?: boolean; reach?: number; lengths?: number[] };
   priceLabelScale?: number;
-  venue?: { body?: boolean; bare?: boolean; oneLine?: boolean };
+  venue?: { body?: boolean; bare?: boolean; oneLine?: boolean; pinSize?: number; pinGap?: number; pinShift?: number; centred?: boolean };
+  priceGap?: number;
   labelScale?: number;
   timeScale?: number;
   timeWeight?: number;

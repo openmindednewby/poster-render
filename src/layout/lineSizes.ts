@@ -43,7 +43,8 @@ const iconSize = (group: FlowGroup, k: number): number => {
 export function groupBox(group: FlowGroup, k: number, colW: number): GroupBox {
   const pad = group.card ? group.card.pad * k : 0;
   const d = iconSize(group, k);
-  const iconIndent = d > 0 ? d * (1 + ICON_GAP) : 0;
+  const gap = group.icon?.gap === undefined ? d * ICON_GAP : group.icon.gap * k;
+  const iconIndent = d > 0 ? d + gap : 0;
   return { pad, d, iconIndent, avail: colW - 2 * pad - iconIndent };
 }
 

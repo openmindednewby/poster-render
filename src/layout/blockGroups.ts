@@ -1,6 +1,6 @@
 import { LayoutId } from '../enums/LayoutId';
 import type { RowIcon } from '../enums/RowIcon';
-import type { FlierDoc, ListItem, Palette } from '../types';
+import type { FlierDoc, ListItem, Palette, RowTheme } from '../types';
 import { styleContext, styled, type StyleContext } from './lineStyle';
 import type { FlowGroup, FlowLine } from './textFlow';
 
@@ -132,6 +132,8 @@ function scheduleLines(doc: FlierDoc, l: Makers, row: { label: string; time: str
   return [tied, l.time(row.time, SIZE.scheduleTime * (r?.timeScale ?? 1), `schedule.${i}.time`)];
 }
 
+const priceAmount = (doc: FlierDoc, line: FlowLine): FlowLine => (doc.rows?.priceGap === undefined ? line : { ...line, gapAfter: doc.rows.priceGap });
+
 function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions & { marks: RowMarks }): FlowGroup[] {
   const b = doc.blocks;
   const groups: FlowGroup[] = [];
@@ -144,7 +146,7 @@ function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions &
     groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < schedule.length - 1, ...options.marks(icons?.schedule, i, i === lastRow) });
   });
   prices.forEach((row, i) => {
-    const lines = options.compact ? [l.strong(`${row.amount} ${row.label}`, SIZE.priceAmount, `prices.${i}.amount`)] : [l.strong(row.amount, SIZE.priceAmount, `prices.${i}.amount`), l.accent(row.label, SIZE.priceLabel * (doc.rows?.priceLabelScale ?? 1), `prices.${i}.label`)];
+    const lines = options.compact ? [l.strong(`${row.amount} ${row.label}`, SIZE.priceAmount, `prices.${i}.amount`)] : [priceAmount(doc, l.strong(row.amount, SIZE.priceAmount, `prices.${i}.amount`)), l.accent(row.label, SIZE.priceLabel * (doc.rows?.priceLabelScale ?? 1), `prices.${i}.label`)];
     groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < prices.length - 1, ...options.marks(icons?.prices, i, schedule.length + i === lastRow) });
   });
   return groups;
@@ -165,6 +167,10 @@ export function flankPriceGroups(doc: FlierDoc, p: Palette, u: number): FlowGrou
   return (doc.blocks.prices ?? []).map((row, i) => ({ lines: [l.strong(row.amount, SIZE.flankAmount, `prices.${i}.amount`), l.accent(row.label, SIZE.flankLabel, `prices.${i}.label`)], gapAfter: GAP.row * u }));
 }
 
+function pinOf(look: RowTheme['venue'], u: number): Partial<NonNullable<FlowGroup['icon']>> {
+  return { size: look?.pinSize === undefined ? undefined : look.pinSize * u, gap: look?.pinGap === undefined ? undefined : look.pinGap * u, shift: look?.pinShift === undefined ? undefined : look.pinShift * u, centre: look?.centred };
+}
+
 /** Turns the doc's body blocks into flow groups: venue with its pin, schedule or list items, prices, includes, footer; compact sets each schedule and price row on one line. */
 export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOptions = {}): FlowGroup[] {
   const l = makers(p, u, styleContext(doc), doc.rows?.timeWeight);
@@ -177,7 +183,7 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOp
     const look = doc.rows?.venue;
     const line = look?.body === true ? l.bodyVenue : l.venue;
     const venue = look?.oneLine === true ? [b.venue.join(' ')] : b.venue;
-    groups.push({ lines: venue.map((v, i) => line(v, size, `venue.${i}`)), gapAfter: GAP.venue * u, rule: dividerOf(doc, p, u) ?? { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.icon ?? p.accent, glyph: p.background, bare: look?.bare }, keepWithNext });
+    groups.push({ lines: venue.map((v, i) => line(v, size, `venue.${i}`)), gapAfter: GAP.venue * u, rule: dividerOf(doc, p, u) ?? { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.icon ?? p.accent, glyph: p.background, bare: look?.bare, ...pinOf(look, u) }, keepWithNext });
   }
   groups.push(...(isList ? listGroups(doc, l, u, options.dateScale ?? 1) : eventGroups(doc, l, u, { ...options, marks: rowMarks(doc, p, u) })));
   if (b.includes) {
