@@ -40,6 +40,7 @@ type Line = (text: string, size: number, key: string) => FlowLine;
 interface Makers {
   display: Line;
   venue: Line;
+  bodyVenue: Line;
   script: Line;
   strong: Line;
   accent: Line;
@@ -50,6 +51,7 @@ interface Makers {
 const makers = (p: Palette, u: number, sc: StyleContext): Makers => ({
   display: (text, size, key) => styled({ text, role: 'display', weight: BOLD, size: size * u, color: p.title }, key, sc),
   venue: (text, size, key) => styled({ text, role: 'display', weight: MEDIUM, size: size * u, color: p.ink }, key, sc),
+  bodyVenue: (text, size, key) => styled({ text, role: 'body', weight: BOLD, size: size * u, color: p.ink }, key, sc),
   script: (text, size, key) => styled({ text, role: 'script', weight: SCRIPT, size: size * u, color: p.script ?? p.accent }, key, sc),
   strong: (text, size, key) => styled({ text, role: 'body', weight: BOLD, size: size * u, color: p.ink }, key, sc),
   accent: (text, size, key) => styled({ text, role: 'body', weight: SEMI, size: size * u, color: p.accent }, key, sc),
@@ -131,7 +133,7 @@ function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions &
     groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < schedule.length - 1, ...options.marks(icons?.schedule, i, i === lastRow) });
   });
   prices.forEach((row, i) => {
-    const lines = options.compact ? [l.strong(`${row.amount} ${row.label}`, SIZE.priceAmount, `prices.${i}.amount`)] : [l.strong(row.amount, SIZE.priceAmount, `prices.${i}.amount`), l.accent(row.label, SIZE.priceLabel, `prices.${i}.label`)];
+    const lines = options.compact ? [l.strong(`${row.amount} ${row.label}`, SIZE.priceAmount, `prices.${i}.amount`)] : [l.strong(row.amount, SIZE.priceAmount, `prices.${i}.amount`), l.accent(row.label, SIZE.priceLabel * (doc.rows?.priceLabelScale ?? 1), `prices.${i}.label`)];
     groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < prices.length - 1, ...options.marks(icons?.prices, i, schedule.length + i === lastRow) });
   });
   return groups;
@@ -161,7 +163,9 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOp
   if (b.venue) {
     const size = isList ? SIZE.listVenue : SIZE.venue;
     const keepWithNext = !isList && (b.schedule?.length ?? 0) > 0;
-    groups.push({ lines: b.venue.map((v, i) => l.venue(v, size, `venue.${i}`)), gapAfter: GAP.venue * u, rule: dividerOf(doc, p, u) ?? { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.icon ?? p.accent, glyph: p.background }, keepWithNext });
+    const look = doc.rows?.venue;
+    const line = look?.body === true ? l.bodyVenue : l.venue;
+    groups.push({ lines: b.venue.map((v, i) => line(v, size, `venue.${i}`)), gapAfter: GAP.venue * u, rule: dividerOf(doc, p, u) ?? { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.icon ?? p.accent, glyph: p.background, bare: look?.bare }, keepWithNext });
   }
   groups.push(...(isList ? listGroups(doc, l, u, options.dateScale ?? 1) : eventGroups(doc, l, u, { ...options, marks: rowMarks(doc, p, u) })));
   if (b.includes) {

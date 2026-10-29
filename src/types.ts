@@ -54,10 +54,12 @@ export interface PictureOverlap {
   dy: number;
 }
 
-/** Row icon discs and divider rules; a short icon list repeats its last icon; px at a 1080 short edge. */
+/** Row icon discs, divider rules, price label scale and venue face/pin; a short icon list repeats its last icon; px at a 1080 short edge. */
 export interface RowTheme {
   icons?: { schedule?: RowIcon[]; prices?: RowIcon[]; size?: number };
   dividers?: { thickness: number; color?: string; gap?: number; toPicture?: boolean; reach?: number };
+  priceLabelScale?: number;
+  venue?: { body?: boolean; bare?: boolean };
 }
 
 export interface LogoSlot {

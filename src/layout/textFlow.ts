@@ -28,7 +28,7 @@ export interface FlowGroup {
   ruleBelow?: boolean;
   ruleAbove?: boolean;
   uniform?: boolean;
-  icon?: { color: string; glyph: string; kind?: RowIcon; size?: number };
+  icon?: { color: string; glyph: string; kind?: RowIcon; size?: number; bare?: boolean };
   keepWithNext?: boolean;
   attachNext?: boolean;
 }
@@ -50,7 +50,7 @@ export interface FlowResult {
   cards: { rect: Rect; color: string }[];
   rules: { rect: Rect; color: string }[];
   bullets: { x: number; y: number; r: number; color: string }[];
-  icons: { rect: Rect; color: string; glyph: string; kind?: RowIcon }[];
+  icons: { rect: Rect; color: string; glyph: string; kind?: RowIcon; bare?: boolean }[];
 }
 
 const BULLET_RADIUS = 0.2;
@@ -121,7 +121,7 @@ function placeIcon(group: FlowGroup, box: IconBox, out: FlowResult | null): numb
     return bottom;
   }
   const textH = bottom - top;
-  out?.icons.push({ rect: { x, y: top + Math.max(0, (textH - d) / 2), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph, kind: group.icon.kind });
+  out?.icons.push({ rect: { x, y: top + Math.max(0, (textH - d) / 2), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph, kind: group.icon.kind, bare: group.icon.bare });
   return top + Math.max(textH, d);
 }
 

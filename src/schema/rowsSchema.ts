@@ -14,6 +14,7 @@ const MAX_TOP = 600;
 const MAX_LINE_GAP = 200;
 const MIN_TITLE_SCALE = 0.3;
 const MAX_TITLE_SCALE = 2.5;
+const MIN_LABEL_SCALE = 0.3;
 
 const num = (minimum: number, maximum: number): JsonSchema => ({ type: 'number', minimum, maximum });
 const icons = (maxItems: number): JsonSchema => ({ type: 'array', items: { type: 'string', enum: Object.values(RowIcon) }, minItems: 1, maxItems });
@@ -35,6 +36,8 @@ export const rowsSchema: JsonSchema = {
         reach: num(0, 1),
       },
     },
+    priceLabelScale: num(MIN_LABEL_SCALE, 1),
+    venue: { type: 'object', additionalProperties: false, properties: { body: { type: 'boolean' }, bare: { type: 'boolean' } } },
   },
 };
 

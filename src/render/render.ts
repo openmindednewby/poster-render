@@ -22,19 +22,24 @@ const PIN_TIP_Y = 0.28;
 const PIN_HOLE = 0.42;
 const ARC_START = 0.75;
 const ARC_END = 2.25;
+const BARE_SCALE = 1.6;
 
-function drawPin(ctx: PosterContext, r: Rect, color: string, glyph: string): void {
+function drawPin(ctx: PosterContext, r: Rect, colors: { color: string; glyph: string }, bare = false): void {
+  const { color, glyph } = bare ? { color: colors.glyph, glyph: colors.color } : colors;
+  const w = bare ? r.w * BARE_SCALE : r.w;
   const cx = r.x + r.w / 2;
   const cy = r.y + r.h / 2;
-  const hy = cy - r.w * PIN_HEAD_Y;
-  const rad = r.w * PIN_HEAD_R;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r.w / 2, 0, Math.PI * 2);
-  ctx.fill();
+  const hy = cy - w * PIN_HEAD_Y;
+  const rad = w * PIN_HEAD_R;
+  if (!bare) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r.w / 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.fillStyle = glyph;
   ctx.beginPath();
-  ctx.moveTo(cx, cy + r.w * PIN_TIP_Y);
+  ctx.moveTo(cx, cy + w * PIN_TIP_Y);
   ctx.arc(cx, hy, rad, Math.PI * ARC_START, Math.PI * ARC_END);
   ctx.closePath();
   ctx.fill();
@@ -74,7 +79,7 @@ function drawMarks(ctx: PosterContext, f: FlowResult, radius: number): void {
     ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
     ctx.fill();
   });
-  f.icons.forEach((i) => (i.kind === undefined ? drawPin(ctx, i.rect, i.color, i.glyph) : drawRowIcon(ctx, i.rect, i.kind, { fill: i.color, glyph: i.glyph })));
+  f.icons.forEach((i) => (i.kind === undefined ? drawPin(ctx, i.rect, { color: i.color, glyph: i.glyph }, i.bare) : drawRowIcon(ctx, i.rect, i.kind, { fill: i.color, glyph: i.glyph })));
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   f.texts.forEach((t) => {
