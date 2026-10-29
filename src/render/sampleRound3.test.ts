@@ -45,10 +45,10 @@ describe('bodyGroups priceGap', () => {
 });
 
 describe('FONT_SETS kizomba sample', () => {
-  it('with the sample set, uses the monoline Style Script for the script role', () => {
+  it('with the sample set, uses Sofia for the script role (the date), Style Script next', () => {
     const script = FONT_SETS[FontSetId.KizombaSample].script;
 
-    expect(script.startsWith('"Style Script"')).toBe(true);
+    expect(script.startsWith('"Sofia", "Style Script"')).toBe(true);
   });
 });
 
