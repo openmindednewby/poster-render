@@ -9,5 +9,9 @@ export const PALETTES: Readonly<Record<PaletteId, Palette>> = {
     background: '#dce5e7', tint: '#d3dee1', title: '#2f566f', accent: '#8a4325', ink: '#1f2d36', soft: '#46606f', card: '#f4f1ec', arch: '#c7d4d6',
     sky: [[0, '#bfd3d8'], [0.55, '#d4dddd'], [1, '#eadccb']],
   },
+  [PaletteId.KizombaSample]: {
+    background: '#fefefe', tint: '#f3eee9', title: '#6d645d', accent: '#ad8164', ink: '#45372f', soft: '#9c8f84', card: '#ffffff', arch: '#efe8e1',
+    script: '#e5bb97', icon: '#cca383', rule: '#d5bca8', brush: ['#cdc3b9', '#96918b', '#daae81'],
+  },
   [PaletteId.Rose]: { background: '#f8efec', tint: '#f1e2dd', title: '#9b6b63', accent: '#c9846f', ink: '#4a3934', soft: '#b39a92', card: '#ffffff', arch: '#f1e5e1' },
 };

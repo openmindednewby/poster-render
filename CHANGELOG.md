@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.0
+
+- FLIER-2 "Flier Studio follow-ups" D30 (sample parity, gap table `apps/flier-studio/docs/design/FLIER-2-sample-parity/gap.md`), all optional:
+- `tuning.headerTop` (title top, px at a 1080 short edge), `tuning.titleScriptGap` / `tuning.scriptTitleGap` (separate gaps between the header lines), `tuning.titleScale` / `tuning.titleBottomScale`.
+- `rows.icons` (`RowIcon` person / people / ticket per schedule and price row, optional `size`): a filled disc with a white line icon; a short list repeats its last icon.
+- `rows.dividers` (`thickness`, `color`, `gap`, `toPicture`, `reach`): a rule above the venue and below every row but the last; `toPicture` runs each rule to the picture edge, drawn under the picture.
+- `picture.overlap` (`scale` 1-1.5, `dx`, `dy`): the picture grows and shifts over the rows, stays on the canvas, and text is drawn over it.
+- `BackgroundStyle.Brush`: deterministic dry-brush strokes beside the picture in `palette.brush`.
+- `PaletteId.KizombaSample` (measured: page #fefefe, title #6d645d, ink #45372f, accent #ad8164, script #e5bb97, icon #cca383, rule #d5bca8, brush) and `FontSetId.KizombaSample` (Anton / Sacramento / Barlow Semi Condensed). Optional palette fields `script`, `icon`, `rule`, `brush`.
+- `RenderReport.ruleBoxes`. Docs without the new fields render pixel-identical to 0.5.0 (45 sha256 snapshots unchanged).
+
 ## 0.5.0
 
 - FLIER-2 "Flier Studio follow-ups" AC-38/39/40 (D25, D26, D29): optional `FlierDoc.lineStyles`, a per-line override keyed by line path (`title`, `venue.1`, `schedule.0.time`, `items.2.date`, see `LINE_KEY_PATTERN`) with `font`, `sizeScale`, `color`, `weight`, `italic`, `letterSpacing` (em) and `align` (`LineAlign`).

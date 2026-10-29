@@ -1,4 +1,5 @@
 import { LayoutId } from '../enums/LayoutId';
+import type { RowIcon } from '../enums/RowIcon';
 import type { FlierDoc, ListItem, Palette } from '../types';
 import { styleContext, styled, type StyleContext } from './lineStyle';
 import type { FlowGroup, FlowLine } from './textFlow';
@@ -31,6 +32,7 @@ const GAP = {
   venue: 40,
   includes: 24,
   rule: 8,
+  divider: 24,
 } as const;
 
 type Line = (text: string, size: number, key: string) => FlowLine;
@@ -48,7 +50,7 @@ interface Makers {
 const makers = (p: Palette, u: number, sc: StyleContext): Makers => ({
   display: (text, size, key) => styled({ text, role: 'display', weight: BOLD, size: size * u, color: p.title }, key, sc),
   venue: (text, size, key) => styled({ text, role: 'display', weight: MEDIUM, size: size * u, color: p.ink }, key, sc),
-  script: (text, size, key) => styled({ text, role: 'script', weight: SCRIPT, size: size * u, color: p.accent }, key, sc),
+  script: (text, size, key) => styled({ text, role: 'script', weight: SCRIPT, size: size * u, color: p.script ?? p.accent }, key, sc),
   strong: (text, size, key) => styled({ text, role: 'body', weight: BOLD, size: size * u, color: p.ink }, key, sc),
   accent: (text, size, key) => styled({ text, role: 'body', weight: SEMI, size: size * u, color: p.accent }, key, sc),
   item: (text, size, key) => styled({ text, role: 'body', weight: SEMI, size: size * u, color: p.ink, bullet: p.accent }, key, sc),
@@ -58,7 +60,11 @@ const makers = (p: Palette, u: number, sc: StyleContext): Makers => ({
 export function headerGroups(doc: FlierDoc, p: Palette, u: number): FlowGroup[] {
   const l = makers(p, u, styleContext(doc));
   const b = doc.blocks;
-  const lines = [l.display(b.title, SIZE.title, 'title'), b.script ? l.script(b.script, SIZE.headerScript, 'script') : undefined, b.titleBottom ? l.display(b.titleBottom, SIZE.title, 'titleBottom') : undefined];
+  const t = doc.tuning;
+  const gap = (line: FlowLine, after: number | undefined): FlowLine => (after === undefined ? line : { ...line, gapAfter: after * u });
+  const title = gap(l.display(b.title, SIZE.title * (t?.titleScale ?? 1), 'title'), b.script ?? b.titleBottom ? t?.titleScriptGap : undefined);
+  const script = b.script ? gap(l.script(b.script, SIZE.headerScript, 'script'), b.titleBottom ? t?.scriptTitleGap : undefined) : undefined;
+  const lines = [title, script, b.titleBottom ? l.display(b.titleBottom, SIZE.title * (t?.titleBottomScale ?? 1), 'titleBottom') : undefined];
   return [{ lines: lines.filter((x): x is FlowLine => x !== undefined), gapAfter: 0 }];
 }
 
@@ -81,6 +87,23 @@ export interface BodyOptions {
 
 const WRAP_FROM = 14;
 
+type RowMarks = (icons: RowIcon[] | undefined, i: number, last: boolean) => Partial<FlowGroup>;
+
+function dividerOf(doc: FlierDoc, p: Palette, u: number): FlowGroup['rule'] {
+  const d = doc.rows?.dividers;
+  return d === undefined ? undefined : { color: d.color ?? p.rule ?? p.accent, height: d.thickness * u, gap: (d.gap ?? GAP.divider) * u };
+}
+
+function rowMarks(doc: FlierDoc, p: Palette, u: number): RowMarks {
+  const divider = dividerOf(doc, p, u);
+  const size = doc.rows?.icons?.size;
+  return (icons, i, last) => {
+    const kind = icons === undefined || icons.length === 0 ? undefined : icons[Math.min(i, icons.length - 1)];
+    const icon = kind === undefined ? {} : { icon: { color: p.icon ?? p.accent, glyph: p.background, kind, size: size === undefined ? undefined : size * u } };
+    return { ...icon, ...(divider === undefined || last ? {} : { rule: divider, ruleBelow: true, ruleAbove: false }) };
+  };
+}
+
 function halves(text: string): string[] {
   const mid = text.length / 2;
   const spaces = [...text].flatMap((c, i) => (c === ' ' ? [i] : []));
@@ -96,18 +119,20 @@ function wrapped(line: FlowLine, wrap: boolean | undefined): FlowLine[] {
   return parts.map((text, i) => (i === 0 ? { ...line, text } : { ...line, text, bullet: undefined, hang: line.bullet !== undefined }));
 }
 
-function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions): FlowGroup[] {
+function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions & { marks: RowMarks }): FlowGroup[] {
   const b = doc.blocks;
   const groups: FlowGroup[] = [];
   const schedule = b.schedule ?? [];
+  const prices = (options.withPrices === false ? undefined : b.prices) ?? [];
+  const lastRow = schedule.length + prices.length - 1;
+  const icons = doc.rows?.icons;
   schedule.forEach((row, i) => {
     const lines = options.compact ? [l.strong(`${row.label}  ${row.time}`, SIZE.scheduleLabel, `schedule.${i}.label`)] : [l.strong(row.label, SIZE.scheduleLabel, `schedule.${i}.label`), l.accent(row.time, SIZE.scheduleTime, `schedule.${i}.time`)];
-    groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < schedule.length - 1 });
+    groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < schedule.length - 1, ...options.marks(icons?.schedule, i, i === lastRow) });
   });
-  const prices = (options.withPrices === false ? undefined : b.prices) ?? [];
   prices.forEach((row, i) => {
     const lines = options.compact ? [l.strong(`${row.amount} ${row.label}`, SIZE.priceAmount, `prices.${i}.amount`)] : [l.strong(row.amount, SIZE.priceAmount, `prices.${i}.amount`), l.accent(row.label, SIZE.priceLabel, `prices.${i}.label`)];
-    groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < prices.length - 1 });
+    groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < prices.length - 1, ...options.marks(icons?.prices, i, schedule.length + i === lastRow) });
   });
   return groups;
 }
@@ -136,9 +161,9 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOp
   if (b.venue) {
     const size = isList ? SIZE.listVenue : SIZE.venue;
     const keepWithNext = !isList && (b.schedule?.length ?? 0) > 0;
-    groups.push({ lines: b.venue.map((v, i) => l.venue(v, size, `venue.${i}`)), gapAfter: GAP.venue * u, rule: { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.accent, glyph: p.background }, keepWithNext });
+    groups.push({ lines: b.venue.map((v, i) => l.venue(v, size, `venue.${i}`)), gapAfter: GAP.venue * u, rule: dividerOf(doc, p, u) ?? { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.icon ?? p.accent, glyph: p.background }, keepWithNext });
   }
-  groups.push(...(isList ? listGroups(doc, l, u, options.dateScale ?? 1) : eventGroups(doc, l, u, options)));
+  groups.push(...(isList ? listGroups(doc, l, u, options.dateScale ?? 1) : eventGroups(doc, l, u, { ...options, marks: rowMarks(doc, p, u) })));
   if (b.includes) {
     const lines = [l.accent(b.includes.heading, SIZE.small, 'includes.heading'), ...b.includes.items.map((item, i) => l.item(item, SIZE.small, `includes.items.${i}`))].flatMap((line) => wrapped(line, options.wrap));
     groups.push({ lines, gapAfter: GAP.includes * u, uniform: true, keepWithNext: b.footer !== undefined, attachNext: b.footer !== undefined });

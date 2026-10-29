@@ -1,5 +1,4 @@
-import { paintGround } from './background';
-import { BackgroundStyle } from '../enums/BackgroundStyle';
+import { paintPage } from './background';
 import { PictureAnchor } from '../enums/PictureAnchor';
 import { FONT_SETS } from '../fontSets';
 import { FORMAT_SIZES } from '../formats';
@@ -7,9 +6,11 @@ import { placeContain, type LayoutGeometry } from '../layout/geometry';
 import type { FlowResult } from '../layout/textFlow';
 import { PALETTES } from '../palettes';
 import { FlierDocError, missingAssets, validateFlierDoc } from '../schema/validateFlierDoc';
-import { fitToFloor } from './fitToFloor';
+import { fitToFloor, type FittedText } from './fitToFloor';
+import { placePicture, reachPicture } from './overlap';
 import { pictureRegion } from './regions';
-import type { FlierDoc, PosterAssets, PosterCanvas, PosterContext, Rect, RenderReport } from '../types';
+import { drawRowIcon } from './rowIcons';
+import type { FlierDoc, PosterAssets, PosterCanvas, PosterContext, PosterImage, Rect, RenderReport } from '../types';
 
 const BASE = 1080;
 const NO_SPACING = '0px';
@@ -55,11 +56,14 @@ function roundRect(ctx: PosterContext, r: Rect, radius: number): void {
   ctx.fill();
 }
 
-function drawFlow(ctx: PosterContext, f: FlowResult, radius: number): void {
+function drawRules(ctx: PosterContext, f: FlowResult): void {
   f.rules.forEach((r) => {
     ctx.fillStyle = r.color;
     ctx.fillRect(r.rect.x, r.rect.y, r.rect.w, r.rect.h);
   });
+}
+
+function drawMarks(ctx: PosterContext, f: FlowResult, radius: number): void {
   f.cards.forEach((c) => {
     ctx.fillStyle = c.color;
     roundRect(ctx, c.rect, radius);
@@ -70,7 +74,7 @@ function drawFlow(ctx: PosterContext, f: FlowResult, radius: number): void {
     ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
     ctx.fill();
   });
-  f.icons.forEach((i) => drawPin(ctx, i.rect, i.color, i.glyph));
+  f.icons.forEach((i) => (i.kind === undefined ? drawPin(ctx, i.rect, i.color, i.glyph) : drawRowIcon(ctx, i.rect, i.kind, { fill: i.color, glyph: i.glyph })));
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   f.texts.forEach((t) => {
@@ -84,6 +88,11 @@ function drawFlow(ctx: PosterContext, f: FlowResult, radius: number): void {
       ctx.letterSpacing = NO_SPACING;
     }
   });
+}
+
+function drawFlow(ctx: PosterContext, f: FlowResult, radius: number): void {
+  drawRules(ctx, f);
+  drawMarks(ctx, f, radius);
 }
 
 function checked(input: unknown, assets: PosterAssets): FlierDoc {
@@ -121,6 +130,33 @@ function capAligned(zone: Rect, head: FlowResult): Rect {
   return { ...zone, y: zone.y + shift, h: zone.h - shift };
 }
 
+interface Placed {
+  image: PosterImage | undefined;
+  region: Rect;
+  picture: Rect | null;
+}
+
+function placeOnPage(doc: FlierDoc, assets: PosterAssets, fitted: FittedText, frame: { width: number; height: number; u: number }): Placed {
+  const image = doc.picture ? assets[doc.picture.imageId] : undefined;
+  const region = pictureRegion(doc.layout, fitted.geo, fitted.body, frame);
+  const picture = image && doc.picture ? placePicture(image, region, doc.picture, { alignX: fitted.geo.alignX, frame }) : null;
+  const dividers = doc.rows?.dividers;
+  if (picture && dividers?.toPicture === true) {
+    reachPicture(fitted.body.rules, picture, dividers.reach ?? 0);
+  }
+  return { image, region, picture };
+}
+
+function drawLogo(ctx: PosterContext, doc: FlierDoc, assets: PosterAssets, fitted: FittedText): Rect | null {
+  const logoImage = doc.logo ? assets[doc.logo.imageId] : undefined;
+  const zone = fitted.geo.logo ? fitted.zones.logo : capAligned(fitted.zones.logo, fitted.head);
+  const logo = logoImage ? placeContain(logoImage, zone, { anchor: PictureAnchor.Top, alignX: 1, scale: 1 }) : null;
+  if (logoImage && logo) {
+    ctx.drawImage(logoImage, logo.x, logo.y, logo.w, logo.h);
+  }
+  return logo;
+}
+
 /** Validates the doc, then draws it on the canvas (resized to the format); throws FlierDocError before touching the canvas. */
 export function render(input: unknown, assets: PosterAssets, canvas: PosterCanvas): RenderReport {
   const doc = checked(input, assets);
@@ -132,40 +168,34 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
     throw new Error('poster-render: the canvas has no 2d context');
   }
   const palette = PALETTES[doc.palette];
-  const fonts = FONT_SETS[doc.fonts];
-  const u = Math.min(width, height) / BASE;
-  const { geo, zones, head, body, sides } = fitToFloor(ctx, { doc, palette, fonts, width, height });
-  ctx.globalAlpha = 1;
-  paintGround(ctx, doc.background, palette, { width, height });
-  if (doc.background === BackgroundStyle.Tint) {
-    ctx.fillStyle = palette.tint;
-    [geo.header, geo.body].forEach((r) => ctx.fillRect(r.x, r.y, r.w, r.h));
-  }
+  const fitted = fitToFloor(ctx, { doc, palette, fonts: FONT_SETS[doc.fonts], width, height });
+  const { geo, head, body, sides } = fitted;
+  const { image, region, picture } = placeOnPage(doc, assets, fitted, { width, height, u: Math.min(width, height) / BASE });
+  paintPage(ctx, doc, palette, { geo, width, height, picture });
   const radius = Math.min(width, height) * CARD_RADIUS;
-  [head, body, ...sides].forEach((f) => drawFlow(ctx, f, radius));
-  const logoImage = doc.logo ? assets[doc.logo.imageId] : undefined;
-  const logo = logoImage ? placeContain(logoImage, geo.logo ? zones.logo : capAligned(zones.logo, head), { anchor: PictureAnchor.Top, alignX: 1, scale: 1 }) : null;
-  if (logoImage && logo) {
-    ctx.drawImage(logoImage, logo.x, logo.y, logo.w, logo.h);
-  }
-  const image = doc.picture ? assets[doc.picture.imageId] : undefined;
+  const flows = [head, body, ...sides];
+  const layered = doc.picture?.overlap !== undefined;
+  flows.forEach((f) => (layered ? drawRules(ctx, f) : drawFlow(ctx, f, radius)));
+  const logo = drawLogo(ctx, doc, assets, fitted);
   const backdrop = image ? archRect(geo) : null;
   if (backdrop) {
     drawArch(ctx, backdrop, palette.arch);
   }
-  const region = pictureRegion(doc.layout, geo, body, { width, height, u });
-  const picture = image && doc.picture ? placeContain(image, region, { anchor: doc.picture.anchor, alignX: geo.alignX, scale: doc.picture.scale }) : null;
   if (image && picture) {
     ctx.drawImage(image, picture.x, picture.y, picture.w, picture.h);
+  }
+  if (layered) {
+    flows.forEach((f) => drawMarks(ctx, f, radius));
   }
   return {
     width,
     height,
     picture,
     pictureRegion: region,
-    textBoxes: [head, body, ...sides].flatMap((f) => f.texts.map((t) => t.box)),
+    textBoxes: flows.flatMap((f) => f.texts.map((t) => t.box)),
     cardBoxes: body.cards.map((c) => c.rect),
-    iconBoxes: [head, body, ...sides].flatMap((f) => f.icons.map((i) => i.rect)),
+    iconBoxes: flows.flatMap((f) => f.icons.map((i) => i.rect)),
+    ruleBoxes: flows.flatMap((f) => f.rules.map((r) => r.rect)),
     logo,
     backdrop,
   };

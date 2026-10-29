@@ -1,4 +1,5 @@
 import { LineAlign } from '../enums/LineAlign';
+import type { RowIcon } from '../enums/RowIcon';
 import type { FontSet, PosterContext, Rect } from '../types';
 import { BULLET_INDENT, LINE_HEIGHT, groupBox, indented, sizeTable, type Measured, type SizeTable } from './lineSizes';
 
@@ -16,16 +17,18 @@ export interface FlowLine {
   align?: LineAlign;
   widthTie?: number;
   sizeTie?: number;
+  gapAfter?: number;
 }
 
 export interface FlowGroup {
   lines: FlowLine[];
   gapAfter: number;
   card?: { color: string; pad: number };
-  rule?: { color: string; height: number };
+  rule?: { color: string; height: number; gap?: number };
   ruleBelow?: boolean;
+  ruleAbove?: boolean;
   uniform?: boolean;
-  icon?: { color: string; glyph: string };
+  icon?: { color: string; glyph: string; kind?: RowIcon; size?: number };
   keepWithNext?: boolean;
   attachNext?: boolean;
 }
@@ -47,7 +50,7 @@ export interface FlowResult {
   cards: { rect: Rect; color: string }[];
   rules: { rect: Rect; color: string }[];
   bullets: { x: number; y: number; r: number; color: string }[];
-  icons: { rect: Rect; color: string; glyph: string }[];
+  icons: { rect: Rect; color: string; glyph: string; kind?: RowIcon }[];
 }
 
 const BULLET_RADIUS = 0.2;
@@ -118,7 +121,7 @@ function placeIcon(group: FlowGroup, box: IconBox, out: FlowResult | null): numb
     return bottom;
   }
   const textH = bottom - top;
-  out?.icons.push({ rect: { x, y: top + Math.max(0, (textH - d) / 2), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph });
+  out?.icons.push({ rect: { x, y: top + Math.max(0, (textH - d) / 2), w: d, h: d }, color: group.icon.color, glyph: group.icon.glyph, kind: group.icon.kind });
   return top + Math.max(textH, d);
 }
 
@@ -126,9 +129,9 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
   const { k, col, y0, sizes } = at;
   const { group } = m;
   let y = y0;
-  if (group.rule) {
+  if (group.rule && group.ruleAbove !== false) {
     out?.rules.push({ rect: { x: col.x, y, w: col.w * RULE_WIDTH, h: group.rule.height * k }, color: group.rule.color });
-    y += group.rule.height * k * RULE_GAP;
+    y += group.rule.gap === undefined ? group.rule.height * k * RULE_GAP : (group.rule.height + group.rule.gap) * k;
   }
   const { pad, d, iconIndent } = groupBox(group, k, col.w);
   const top = y;
@@ -142,12 +145,12 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
     if (line.bullet && out) {
       out.bullets.push({ x: col.x + pad + size * BULLET_RADIUS, y: y + (size * LINE_HEIGHT) / 2, r: size * BULLET_RADIUS, color: line.bullet });
     }
-    y += size * LINE_HEIGHT;
+    y += size * LINE_HEIGHT + (line.gapAfter ?? 0) * k;
   });
   y = placeIcon(group, { d, x: col.x + pad, top: top + pad, bottom: y }, out);
   y += pad;
   if (group.rule && group.ruleBelow) {
-    y += group.rule.height * k * (RULE_GAP - 1);
+    y += group.rule.gap === undefined ? group.rule.height * k * (RULE_GAP - 1) : group.rule.gap * k;
     out?.rules.push({ rect: { x: col.x, y, w: col.w * RULE_WIDTH, h: group.rule.height * k }, color: group.rule.color });
     y += group.rule.height * k;
   }

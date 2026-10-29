@@ -6,6 +6,7 @@ import { PaletteId } from '../enums/PaletteId';
 import { PictureAnchor } from '../enums/PictureAnchor';
 import type { JsonSchema } from './jsonSchemaTypes';
 import { lineStylesSchema, lineTiesSchema } from './lineStyleSchema';
+import { headerTuningSchema, overlapSchema, rowsSchema } from './rowsSchema';
 
 const SHORT = 60;
 const LINE = 120;
@@ -83,6 +84,7 @@ export const flierDocSchema: JsonSchema = {
         imageId: text(SHORT),
         anchor: { type: 'string', enum: Object.values(PictureAnchor) },
         scale: { type: 'number', minimum: MIN_SCALE, maximum: 1 },
+        overlap: overlapSchema,
       },
     },
     logo: { type: 'object', required: ['imageId'], additionalProperties: false, properties: { imageId: text(SHORT) } },
@@ -93,10 +95,12 @@ export const flierDocSchema: JsonSchema = {
       properties: {
         headerGap: { type: 'number', minimum: 0, maximum: MAX_HEADER_GAP },
         itemDateScale: { type: 'number', minimum: MIN_DATE_SCALE, maximum: MAX_DATE_SCALE },
+        ...headerTuningSchema,
       },
     },
     lineStyles: lineStylesSchema,
     lineTies: lineTiesSchema,
+    rows: rowsSchema,
     items: {
       type: 'array',
       minItems: 1,

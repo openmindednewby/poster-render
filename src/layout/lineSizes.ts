@@ -33,6 +33,9 @@ const bulletIndent = (line: FlowLine, k: number): number => (indented(line) ? li
 
 const iconSize = (group: FlowGroup, k: number): number => {
   const first = group.lines[0];
+  if (group.icon?.size !== undefined) {
+    return group.icon.size * k;
+  }
   return group.icon && first ? first.size * k * LINE_HEIGHT * ICON_SCALE : 0;
 };
 

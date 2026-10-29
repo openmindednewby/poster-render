@@ -4,6 +4,7 @@ import { FormatId } from '../enums/FormatId';
 import { LayoutId } from '../enums/LayoutId';
 import { PaletteId } from '../enums/PaletteId';
 import { PictureAnchor } from '../enums/PictureAnchor';
+import { RowIcon } from '../enums/RowIcon';
 import type { FlierDoc } from '../types';
 
 export const LAYOUTS = Object.values(LayoutId);
@@ -46,4 +47,17 @@ export function withoutPicture(doc: FlierDoc): FlierDoc {
   const copy = { ...doc };
   delete copy.picture;
   return copy;
+}
+
+export function sampleDoc(): FlierDoc {
+  return {
+    ...docFor(LayoutId.PictureRight, FormatId.Story),
+    palette: PaletteId.KizombaSample,
+    fonts: FontSetId.KizombaSample,
+    background: BackgroundStyle.Brush,
+    picture: { imageId: 'dancers', anchor: PictureAnchor.Bottom, scale: 1, overlap: { scale: 1.1, dx: -0.06, dy: -0.056 } },
+    logo: { imageId: 'logo' },
+    tuning: { headerTop: 113, titleScriptGap: 8, scriptTitleGap: 14, headerGap: 9, titleScale: 1.31, titleBottomScale: 1.75 },
+    rows: { icons: { schedule: [RowIcon.Person, RowIcon.People], prices: [RowIcon.Ticket], size: 106 }, dividers: { thickness: 2, toPicture: true, reach: 0.3 } },
+  };
 }

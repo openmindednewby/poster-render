@@ -30,7 +30,7 @@ const PICTURE_SIDE: Record<string, [number, number]> = {
 const SHORT_PORTRAIT = 1.5;
 const SHORT_PICTURE_W = 0.5;
 const SHORT_PICTURE_H = 0.75;
-const ANCHOR_Y: Record<PictureAnchor, number> = { [PictureAnchor.Top]: 0, [PictureAnchor.Center]: 0.5, [PictureAnchor.Bottom]: 1 };
+export const ANCHOR_Y: Record<PictureAnchor, number> = { [PictureAnchor.Top]: 0, [PictureAnchor.Center]: 0.5, [PictureAnchor.Bottom]: 1 };
 
 const r = Math.round;
 

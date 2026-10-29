@@ -6,6 +6,7 @@ import type { LineAlign } from './enums/LineAlign';
 import type { LineTieKind } from './enums/LineTieKind';
 import type { PaletteId } from './enums/PaletteId';
 import type { PictureAnchor } from './enums/PictureAnchor';
+import type { RowIcon } from './enums/RowIcon';
 
 export interface ScheduleRow {
   label: string;
@@ -43,6 +44,20 @@ export interface PictureSlot {
   imageId: string;
   anchor: PictureAnchor;
   scale: number;
+  overlap?: PictureOverlap;
+}
+
+/** Grows the picture by scale around its anchor and shifts it by dx, dy (canvas fractions); text is drawn over it. */
+export interface PictureOverlap {
+  scale: number;
+  dx: number;
+  dy: number;
+}
+
+/** Row icon discs and divider rules; a short icon list repeats its last icon; px at a 1080 short edge. */
+export interface RowTheme {
+  icons?: { schedule?: RowIcon[]; prices?: RowIcon[]; size?: number };
+  dividers?: { thickness: number; color?: string; gap?: number; toPicture?: boolean; reach?: number };
 }
 
 export interface LogoSlot {
@@ -63,6 +78,7 @@ export interface FlierDoc {
   tuning?: PosterTuning;
   lineStyles?: Record<LineKey, LineStyle | undefined>;
   lineTies?: LineTie[];
+  rows?: RowTheme;
 }
 
 /** A text line path such as "title", "venue.1", "schedule.0.time" or "items.2.date" (see LINE_KEY_PATTERN). */
@@ -89,6 +105,11 @@ export interface LineTie {
 export interface PosterTuning {
   headerGap?: number;
   itemDateScale?: number;
+  headerTop?: number;
+  titleScriptGap?: number;
+  scriptTitleGap?: number;
+  titleScale?: number;
+  titleBottomScale?: number;
 }
 
 export interface Rect {
@@ -149,6 +170,7 @@ export interface RenderReport {
   textBoxes: Rect[];
   cardBoxes: Rect[];
   iconBoxes: Rect[];
+  ruleBoxes: Rect[];
   logo: Rect | null;
   backdrop: Rect | null;
 }
@@ -163,6 +185,10 @@ export interface Palette {
   card: string;
   arch: string;
   sky?: readonly SkyStop[];
+  script?: string;
+  icon?: string;
+  rule?: string;
+  brush?: readonly string[];
 }
 
 /** One gradient stop of a horizon sky: offset 0 (top) to 1 (bottom) and its colour. */

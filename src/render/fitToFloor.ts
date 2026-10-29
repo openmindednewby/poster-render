@@ -44,6 +44,14 @@ function splitHeader(header: Rect, hasLogo: boolean): { text: Rect; logo: Rect }
   return { text: { ...header, w: header.w - logoW * 1.1 }, logo: { ...header, x: header.x + header.w - logoW, w: logoW } };
 }
 
+function headerAt(zones: { text: Rect; logo: Rect }, top: number | undefined, u: number): { text: Rect; logo: Rect } {
+  if (top === undefined) {
+    return zones;
+  }
+  const y = Math.round(top * u);
+  return { ...zones, text: { ...zones.text, y, h: Math.max(1, zones.text.y + zones.text.h - y) } };
+}
+
 function closeHeaderGap(geo: LayoutGeometry, head: FlowResult, gap: number | undefined, u: number): LayoutGeometry {
   const { header, body } = geo;
   const stacked = header.y + header.h <= body.y && header.x < body.x + body.w && body.x < header.x + header.w;
@@ -57,7 +65,7 @@ function closeHeaderGap(geo: LayoutGeometry, head: FlowResult, gap: number | und
 function flowAll(ctx: PosterContext, input: FitInput, geo: LayoutGeometry, reflow: Reflow): FittedText {
   const { doc, palette, fonts } = input;
   const u = Math.min(input.width, input.height) / BASE;
-  const zones = geo.logo ? { text: geo.header, logo: geo.logo } : splitHeader(geo.header, doc.logo !== undefined);
+  const zones = headerAt(geo.logo ? { text: geo.header, logo: geo.logo } : splitHeader(geo.header, doc.logo !== undefined), doc.tuning?.headerTop, u);
   const head = flow(ctx, headerGroups(doc, palette, u), zones.text, fonts);
   const flanks = geo.flanks ?? [];
   const tight = closeHeaderGap(geo, head, doc.tuning?.headerGap, u);

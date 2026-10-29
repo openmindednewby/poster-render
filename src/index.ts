@@ -6,6 +6,7 @@ export { PaletteId } from './enums/PaletteId';
 export { PictureAnchor } from './enums/PictureAnchor';
 export { LineAlign } from './enums/LineAlign';
 export { LineTieKind } from './enums/LineTieKind';
+export { RowIcon } from './enums/RowIcon';
 export { LINE_KEY_PATTERN } from './schema/lineStyleSchema';
 export { sameWidth, sameSize } from './lineTies';
 export { FORMAT_SIZES, type FormatSize } from './formats';

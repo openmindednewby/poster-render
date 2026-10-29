@@ -3,4 +3,5 @@ export enum FontSetId {
   Modern = 'modern',
   Elegant = 'elegant',
   Coastal = 'coastal',
+  KizombaSample = 'kizomba-sample',
 }
