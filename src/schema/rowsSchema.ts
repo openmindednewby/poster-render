@@ -15,6 +15,15 @@ const MAX_LINE_GAP = 200;
 const MIN_TITLE_SCALE = 0.3;
 const MAX_TITLE_SCALE = 2.5;
 const MIN_LABEL_SCALE = 0.3;
+const MAX_ROW_SCALE = 2;
+const MIN_WEIGHT = 100;
+const MAX_WEIGHT = 900;
+const MIN_WIDTH = 100;
+const MAX_LENGTH = 1080;
+const MAX_BODY_TOP = 1920;
+const MAX_LENGTHS = 12;
+const MIN_SPACING = -0.2;
+const MAX_SPACING = 0.5;
 
 const num = (minimum: number, maximum: number): JsonSchema => ({ type: 'number', minimum, maximum });
 const icons = (maxItems: number): JsonSchema => ({ type: 'array', items: { type: 'string', enum: Object.values(RowIcon) }, minItems: 1, maxItems });
@@ -34,10 +43,15 @@ export const rowsSchema: JsonSchema = {
         gap: num(0, MAX_GAP),
         toPicture: { type: 'boolean' },
         reach: num(0, 1),
+        lengths: { type: 'array', items: num(0, MAX_LENGTH), minItems: 1, maxItems: MAX_LENGTHS },
       },
     },
     priceLabelScale: num(MIN_LABEL_SCALE, 1),
-    venue: { type: 'object', additionalProperties: false, properties: { body: { type: 'boolean' }, bare: { type: 'boolean' } } },
+    venue: { type: 'object', additionalProperties: false, properties: { body: { type: 'boolean' }, bare: { type: 'boolean' }, oneLine: { type: 'boolean' } } },
+    labelScale: num(MIN_LABEL_SCALE, MAX_ROW_SCALE),
+    timeScale: num(MIN_LABEL_SCALE, MAX_ROW_SCALE),
+    timeWeight: num(MIN_WEIGHT, MAX_WEIGHT),
+    textWidth: num(MIN_WIDTH, MAX_LENGTH),
   },
 };
 
@@ -54,4 +68,9 @@ export const headerTuningSchema: Record<string, JsonSchema> = {
   scriptTitleGap: num(-MAX_LINE_GAP, MAX_LINE_GAP),
   titleScale: num(MIN_TITLE_SCALE, MAX_TITLE_SCALE),
   titleBottomScale: num(MIN_TITLE_SCALE, MAX_TITLE_SCALE),
+  headerTextWidth: num(MIN_WIDTH, MAX_LENGTH),
+  bodyTop: num(0, MAX_BODY_TOP),
+  headerHeight: num(MIN_WIDTH, MAX_BODY_TOP),
+  titleSpacing: num(MIN_SPACING, MAX_SPACING),
+  scriptScale: num(MIN_TITLE_SCALE, MAX_TITLE_SCALE),
 };

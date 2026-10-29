@@ -7,7 +7,7 @@ import type { FlowResult } from '../layout/textFlow';
 import { PALETTES } from '../palettes';
 import { FlierDocError, missingAssets, validateFlierDoc } from '../schema/validateFlierDoc';
 import { fitToFloor, type FittedText } from './fitToFloor';
-import { placePicture, reachPicture } from './overlap';
+import { placePicture, reachPicture, stepRules } from './overlap';
 import { pictureRegion } from './regions';
 import { drawRowIcon } from './rowIcons';
 import type { FlierDoc, PosterAssets, PosterCanvas, PosterContext, PosterImage, Rect, RenderReport } from '../types';
@@ -148,6 +148,9 @@ function placeOnPage(doc: FlierDoc, assets: PosterAssets, fitted: FittedText, fr
   const dividers = doc.rows?.dividers;
   if (picture && dividers?.toPicture === true) {
     reachPicture(fitted.body.rules, picture, dividers.reach ?? 0);
+  }
+  if (dividers?.lengths !== undefined) {
+    stepRules(fitted.body.rules, dividers.lengths, frame.u);
   }
   return { image, region, picture };
 }

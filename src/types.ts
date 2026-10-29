@@ -57,9 +57,13 @@ export interface PictureOverlap {
 /** Row icon discs, divider rules, price label scale and venue face/pin; a short icon list repeats its last icon; px at a 1080 short edge. */
 export interface RowTheme {
   icons?: { schedule?: RowIcon[]; prices?: RowIcon[]; size?: number };
-  dividers?: { thickness: number; color?: string; gap?: number; toPicture?: boolean; reach?: number };
+  dividers?: { thickness: number; color?: string; gap?: number; toPicture?: boolean; reach?: number; lengths?: number[] };
   priceLabelScale?: number;
-  venue?: { body?: boolean; bare?: boolean };
+  venue?: { body?: boolean; bare?: boolean; oneLine?: boolean };
+  labelScale?: number;
+  timeScale?: number;
+  timeWeight?: number;
+  textWidth?: number;
 }
 
 export interface LogoSlot {
@@ -112,6 +116,11 @@ export interface PosterTuning {
   scriptTitleGap?: number;
   titleScale?: number;
   titleBottomScale?: number;
+  headerTextWidth?: number;
+  bodyTop?: number;
+  headerHeight?: number;
+  titleSpacing?: number;
+  scriptScale?: number;
 }
 
 export interface Rect {

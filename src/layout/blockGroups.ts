@@ -8,6 +8,7 @@ const BOLD = 700;
 const SEMI = 600;
 const MEDIUM = 500;
 const SCRIPT = 400;
+const LABEL_TIE = -1;
 
 const SIZE = {
   title: 250,
@@ -46,9 +47,10 @@ interface Makers {
   accent: Line;
   item: Line;
   soft: Line;
+  time: Line;
 }
 
-const makers = (p: Palette, u: number, sc: StyleContext): Makers => ({
+const makers = (p: Palette, u: number, sc: StyleContext, timeWeight = SEMI): Makers => ({
   display: (text, size, key) => styled({ text, role: 'display', weight: BOLD, size: size * u, color: p.title }, key, sc),
   venue: (text, size, key) => styled({ text, role: 'display', weight: MEDIUM, size: size * u, color: p.ink }, key, sc),
   bodyVenue: (text, size, key) => styled({ text, role: 'body', weight: BOLD, size: size * u, color: p.ink }, key, sc),
@@ -57,6 +59,7 @@ const makers = (p: Palette, u: number, sc: StyleContext): Makers => ({
   accent: (text, size, key) => styled({ text, role: 'body', weight: SEMI, size: size * u, color: p.accent }, key, sc),
   item: (text, size, key) => styled({ text, role: 'body', weight: SEMI, size: size * u, color: p.ink, bullet: p.accent }, key, sc),
   soft: (text, size, key) => styled({ text, role: 'body', weight: MEDIUM, size: size * u, color: p.soft }, key, sc),
+  time: (text, size, key) => styled({ text, role: 'body', weight: timeWeight, size: size * u, color: p.accent }, key, sc),
 });
 
 export function headerGroups(doc: FlierDoc, p: Palette, u: number): FlowGroup[] {
@@ -64,9 +67,10 @@ export function headerGroups(doc: FlierDoc, p: Palette, u: number): FlowGroup[] 
   const b = doc.blocks;
   const t = doc.tuning;
   const gap = (line: FlowLine, after: number | undefined): FlowLine => (after === undefined ? line : { ...line, gapAfter: after * u });
-  const title = gap(l.display(b.title, SIZE.title * (t?.titleScale ?? 1), 'title'), b.script ?? b.titleBottom ? t?.titleScriptGap : undefined);
-  const script = b.script ? gap(l.script(b.script, SIZE.headerScript, 'script'), b.titleBottom ? t?.scriptTitleGap : undefined) : undefined;
-  const lines = [title, script, b.titleBottom ? l.display(b.titleBottom, SIZE.title * (t?.titleBottomScale ?? 1), 'titleBottom') : undefined];
+  const spaced = (line: FlowLine): FlowLine => (t?.titleSpacing === undefined || line.spacing !== undefined ? line : { ...line, spacing: t.titleSpacing });
+  const title = gap(spaced(l.display(b.title, SIZE.title * (t?.titleScale ?? 1), 'title')), b.script ?? b.titleBottom ? t?.titleScriptGap : undefined);
+  const script = b.script ? gap(l.script(b.script, SIZE.headerScript * (t?.scriptScale ?? 1), 'script'), b.titleBottom ? t?.scriptTitleGap : undefined) : undefined;
+  const lines = [title, script, b.titleBottom ? spaced(l.display(b.titleBottom, SIZE.title * (t?.titleBottomScale ?? 1), 'titleBottom')) : undefined];
   return [{ lines: lines.filter((x): x is FlowLine => x !== undefined), gapAfter: 0 }];
 }
 
@@ -121,6 +125,13 @@ function wrapped(line: FlowLine, wrap: boolean | undefined): FlowLine[] {
   return parts.map((text, i) => (i === 0 ? { ...line, text } : { ...line, text, bullet: undefined, hang: line.bullet !== undefined }));
 }
 
+function scheduleLines(doc: FlierDoc, l: Makers, row: { label: string; time: string }, i: number): FlowLine[] {
+  const r = doc.rows;
+  const label = l.strong(row.label, SIZE.scheduleLabel * (r?.labelScale ?? 1), `schedule.${i}.label`);
+  const tied = r?.labelScale === undefined ? label : { ...label, sizeTie: label.sizeTie ?? LABEL_TIE };
+  return [tied, l.time(row.time, SIZE.scheduleTime * (r?.timeScale ?? 1), `schedule.${i}.time`)];
+}
+
 function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions & { marks: RowMarks }): FlowGroup[] {
   const b = doc.blocks;
   const groups: FlowGroup[] = [];
@@ -129,7 +140,7 @@ function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions &
   const lastRow = schedule.length + prices.length - 1;
   const icons = doc.rows?.icons;
   schedule.forEach((row, i) => {
-    const lines = options.compact ? [l.strong(`${row.label}  ${row.time}`, SIZE.scheduleLabel, `schedule.${i}.label`)] : [l.strong(row.label, SIZE.scheduleLabel, `schedule.${i}.label`), l.accent(row.time, SIZE.scheduleTime, `schedule.${i}.time`)];
+    const lines = options.compact ? [l.strong(`${row.label}  ${row.time}`, SIZE.scheduleLabel, `schedule.${i}.label`)] : scheduleLines(doc, l, row, i);
     groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < schedule.length - 1, ...options.marks(icons?.schedule, i, i === lastRow) });
   });
   prices.forEach((row, i) => {
@@ -156,7 +167,7 @@ export function flankPriceGroups(doc: FlierDoc, p: Palette, u: number): FlowGrou
 
 /** Turns the doc's body blocks into flow groups: venue with its pin, schedule or list items, prices, includes, footer; compact sets each schedule and price row on one line. */
 export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOptions = {}): FlowGroup[] {
-  const l = makers(p, u, styleContext(doc));
+  const l = makers(p, u, styleContext(doc), doc.rows?.timeWeight);
   const b = doc.blocks;
   const groups: FlowGroup[] = [];
   const isList = doc.layout === LayoutId.List;
@@ -165,7 +176,8 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOp
     const keepWithNext = !isList && (b.schedule?.length ?? 0) > 0;
     const look = doc.rows?.venue;
     const line = look?.body === true ? l.bodyVenue : l.venue;
-    groups.push({ lines: b.venue.map((v, i) => line(v, size, `venue.${i}`)), gapAfter: GAP.venue * u, rule: dividerOf(doc, p, u) ?? { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.icon ?? p.accent, glyph: p.background, bare: look?.bare }, keepWithNext });
+    const venue = look?.oneLine === true ? [b.venue.join(' ')] : b.venue;
+    groups.push({ lines: venue.map((v, i) => line(v, size, `venue.${i}`)), gapAfter: GAP.venue * u, rule: dividerOf(doc, p, u) ?? { color: p.accent, height: GAP.rule * u }, ruleBelow: true, icon: { color: p.icon ?? p.accent, glyph: p.background, bare: look?.bare }, keepWithNext });
   }
   groups.push(...(isList ? listGroups(doc, l, u, options.dateScale ?? 1) : eventGroups(doc, l, u, { ...options, marks: rowMarks(doc, p, u) })));
   if (b.includes) {

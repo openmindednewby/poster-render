@@ -33,3 +33,10 @@ export function reachPicture(rules: { rect: Rect }[], picture: Rect, reach: numb
       r.rect.w = Math.max(0, end - r.rect.x);
     });
 }
+
+/** Sets each rule's length in turn (px at a 1080 short edge); later rules repeat the last length. */
+export function stepRules(rules: { rect: Rect }[], lengths: number[], u: number): void {
+  rules.forEach((r, i) => {
+    r.rect.w = (lengths[Math.min(i, lengths.length - 1)] ?? 0) * u;
+  });
+}
