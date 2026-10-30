@@ -38,10 +38,11 @@ export function styled(line: FlowLine, key: string, sc: StyleContext): FlowLine 
   const widthTie = sc.width.get(key);
   const sizeTie = sc.size.get(key);
   if (style === undefined && widthTie === undefined && sizeTie === undefined) {
-    return line;
+    return { ...line, key };
   }
   return {
     ...line,
+    key,
     size: line.size * (style?.sizeScale ?? 1),
     color: style?.color ?? line.color,
     weight: style?.weight ?? line.weight,

@@ -18,6 +18,7 @@ export interface FlowLine {
   widthTie?: number;
   sizeTie?: number;
   gapAfter?: number;
+  key?: string;
 }
 
 export interface FlowGroup {
@@ -43,6 +44,7 @@ export interface TextOp {
   color: string;
   box: Rect;
   spacing?: string;
+  key?: string;
 }
 
 export interface FlowResult {
@@ -145,7 +147,7 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
     const indent = (indented(line) ? line.size * k * BULLET_INDENT : 0) + iconIndent;
     const w = ((m.widths[i] ?? 0) * size) / line.size;
     const x = lineX(line, { col, pad, indent, w });
-    out?.texts.push({ text: line.text, font: '', color: line.color, box: { x, y, w, h: size * LINE_HEIGHT } });
+    out?.texts.push({ text: line.text, font: '', color: line.color, box: { x, y, w, h: size * LINE_HEIGHT }, key: line.key });
     if (line.bullet && out) {
       out.bullets.push({ x: col.x + pad + size * BULLET_RADIUS, y: y + (size * LINE_HEIGHT) / 2, r: size * BULLET_RADIUS, color: line.bullet });
     }

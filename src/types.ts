@@ -180,6 +180,7 @@ export interface RenderReport {
   picture: Rect | null;
   pictureRegion: Rect;
   textBoxes: Rect[];
+  lineBoxes: Record<LineKey, Rect | undefined>;
   cardBoxes: Rect[];
   iconBoxes: Rect[];
   ruleBoxes: Rect[];
