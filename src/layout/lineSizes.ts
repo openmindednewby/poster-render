@@ -50,7 +50,7 @@ export function groupBox(group: FlowGroup, k: number, colW: number): GroupBox {
 
 function lineSize(line: FlowLine, width: number, k: number, avail: number): number {
   const indent = bulletIndent(line, k);
-  return Math.max(0, Math.min(line.size * k, (line.size * (avail - indent)) / Math.max(width, 1)));
+  return Math.max(0, Math.min(line.size * k, (line.size * (avail * (line.widthScale ?? 1) - indent)) / Math.max(width, 1)));
 }
 
 function groupSizes(m: Measured, k: number, avail: number): number[] {
@@ -70,7 +70,7 @@ function tieMembers(all: Measured[], k: number, colW: number, table: SizeTable, 
     m.group.lines.forEach((line, i) => {
       const id = pick(line);
       if (id !== undefined) {
-        const member = { line, width: Math.max(m.widths[i] ?? 1, 1), cap: Math.max(0, avail - bulletIndent(line, k)), sizes, i };
+        const member = { line, width: Math.max(m.widths[i] ?? 1, 1), cap: Math.max(0, avail * (line.widthScale ?? 1) - bulletIndent(line, k)), sizes, i };
         byId.set(id, [...(byId.get(id) ?? []), member]);
       }
     });

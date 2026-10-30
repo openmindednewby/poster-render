@@ -19,6 +19,7 @@ export interface FlowLine {
   sizeTie?: number;
   gapAfter?: number;
   key?: string;
+  widthScale?: number;
 }
 
 export interface FlowGroup {

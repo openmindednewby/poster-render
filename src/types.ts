@@ -91,10 +91,11 @@ export interface FlierDoc {
 /** A text line path such as "title", "venue.1", "schedule.0.time" or "items.2.date" (see LINE_KEY_PATTERN). */
 export type LineKey = string;
 
-/** Optional per-line overrides of the theme; an absent field keeps the theme value. letterSpacing is in em. */
+/** Optional per-line overrides of the theme; an absent field keeps the theme value. letterSpacing is in em; widthScale widens or narrows the room the line may fill. */
 export interface LineStyle {
   font?: string;
   sizeScale?: number;
+  widthScale?: number;
   color?: string;
   weight?: number;
   italic?: boolean;

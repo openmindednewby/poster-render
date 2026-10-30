@@ -49,6 +49,7 @@ export function styled(line: FlowLine, key: string, sc: StyleContext): FlowLine 
     family: style?.font,
     italic: style?.italic,
     spacing: style?.letterSpacing,
+    widthScale: style?.widthScale,
     align: style?.align,
     widthTie,
     sizeTie,
