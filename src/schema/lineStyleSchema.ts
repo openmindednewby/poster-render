@@ -10,6 +10,7 @@ const MAX_FONT = 40;
 const MIN_SPACING = -0.1;
 const MAX_SPACING = 0.5;
 const MAX_TIES = 12;
+const MAX_SPACE = 2;
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
 
 const lineKey: JsonSchema = { type: 'string', pattern: LINE_KEY_PATTERN };
@@ -26,6 +27,8 @@ const lineStyle: JsonSchema = {
     italic: { type: 'boolean' },
     letterSpacing: { type: 'number', minimum: MIN_SPACING, maximum: MAX_SPACING },
     align: { type: 'string', enum: Object.values(LineAlign) },
+    spaceAbove: { type: 'number', minimum: 0, maximum: MAX_SPACE },
+    spaceBelow: { type: 'number', minimum: 0, maximum: MAX_SPACE },
   },
 };
 

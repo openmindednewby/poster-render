@@ -103,6 +103,7 @@ export const flierDocSchema: JsonSchema = {
     lineStyles: lineStylesSchema,
     lineTies: lineTiesSchema,
     rows: rowsSchema,
+    bullets: { type: 'boolean' },
     sectionOrder: { type: 'array', maxItems: MAX_SECTIONS, items: { type: 'string', enum: Object.values(BodySection) } },
     items: {
       type: 'array',

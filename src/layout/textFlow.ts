@@ -19,6 +19,8 @@ export interface FlowLine {
   widthTie?: number;
   sizeTie?: number;
   gapAfter?: number;
+  spaceAbove?: number;
+  spaceBelow?: number;
   key?: string;
   widthScale?: number;
   fixedSize?: boolean;
@@ -144,11 +146,12 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
   const top = y;
   y += pad;
   if (group.icon?.centre === true) {
-    const textH = group.lines.reduce((h, line, i) => h + (sizes[i] ?? 0) * LINE_HEIGHT + (i < group.lines.length - 1 ? (line.gapAfter ?? 0) * k : 0), 0);
+    const textH = group.lines.reduce((h, line, i) => h + (sizes[i] ?? 0) * LINE_HEIGHT + ((line.spaceAbove ?? 0) + (line.spaceBelow ?? 0)) * k + (i < group.lines.length - 1 ? (line.gapAfter ?? 0) * k : 0), 0);
     y += Math.max(0, (d - textH) / 2);
   }
   group.lines.forEach((line, i) => {
     const size = sizes[i] ?? 0;
+    y += (line.spaceAbove ?? 0) * k;
     const indent = (indented(line) ? line.size * k * BULLET_INDENT : 0) + iconIndent;
     const w = ((m.widths[i] ?? 0) * size) / line.size;
     const x = lineX(line, { col, pad, indent, w });
@@ -157,7 +160,7 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
     if (line.bullet && out) {
       out.bullets.push({ x: col.x + pad + size * BULLET_RADIUS, y: y + (size * LINE_HEIGHT) / 2, r: size * BULLET_RADIUS, color: line.bullet });
     }
-    y += size * LINE_HEIGHT + (line.gapAfter ?? 0) * k;
+    y += size * LINE_HEIGHT + ((line.gapAfter ?? 0) + (line.spaceBelow ?? 0)) * k;
   });
   y = placeIcon(group, { d, x: col.x + pad, top: top + pad, bottom: y }, out);
   y += pad;

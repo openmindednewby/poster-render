@@ -88,12 +88,13 @@ export interface FlierDoc {
   lineTies?: LineTie[];
   rows?: RowTheme;
   sectionOrder?: BodySection[];
+  bullets?: boolean;
 }
 
 /** A text line path such as "title", "venue.1", "schedule.0.time" or "items.2.date" (see LINE_KEY_PATTERN). */
 export type LineKey = string;
 
-/** Optional per-line overrides of the theme; an absent field keeps the theme value. letterSpacing is in em; widthScale widens or narrows the room the line may fill. */
+/** Optional per-line overrides of the theme; an absent field keeps the theme value. letterSpacing, spaceAbove and spaceBelow are in em; widthScale widens or narrows the room the line may fill. */
 export interface LineStyle {
   font?: string;
   sizeScale?: number;
@@ -103,6 +104,8 @@ export interface LineStyle {
   italic?: boolean;
   letterSpacing?: number;
   align?: LineAlign;
+  spaceAbove?: number;
+  spaceBelow?: number;
 }
 
 /** Two lines drawn at one width (width) or one font size (size). */

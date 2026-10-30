@@ -40,10 +40,11 @@ export function styled(line: FlowLine, key: string, sc: StyleContext): FlowLine 
   if (style === undefined && widthTie === undefined && sizeTie === undefined) {
     return { ...line, key };
   }
+  const size = line.size * (style?.sizeScale ?? 1);
   return {
     ...line,
     key,
-    size: line.size * (style?.sizeScale ?? 1),
+    size,
     color: style?.color ?? line.color,
     weight: style?.weight ?? line.weight,
     family: style?.font,
@@ -52,6 +53,8 @@ export function styled(line: FlowLine, key: string, sc: StyleContext): FlowLine 
     widthScale: style?.widthScale,
     fixedSize: style?.sizeScale === undefined ? undefined : true,
     align: style?.align,
+    spaceAbove: style?.spaceAbove === undefined ? undefined : style.spaceAbove * size,
+    spaceBelow: style?.spaceBelow === undefined ? undefined : style.spaceBelow * size,
     widthTie,
     sizeTie,
   };

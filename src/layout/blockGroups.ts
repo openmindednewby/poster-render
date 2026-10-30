@@ -52,14 +52,14 @@ interface Makers {
   time: Line;
 }
 
-const makers = (p: Palette, u: number, sc: StyleContext, timeWeight = SEMI): Makers => ({
+const makers = (p: Palette, u: number, sc: StyleContext, timeWeight = SEMI, bullets = true): Makers => ({
   display: (text, size, key) => styled({ text, role: 'display', weight: BOLD, size: size * u, color: p.title }, key, sc),
   venue: (text, size, key) => styled({ text, role: 'display', weight: MEDIUM, size: size * u, color: p.ink }, key, sc),
   bodyVenue: (text, size, key) => styled({ text, role: 'body', weight: BOLD, size: size * u, color: p.ink }, key, sc),
   script: (text, size, key) => styled({ text, role: 'script', weight: SCRIPT, size: size * u, color: p.script ?? p.accent }, key, sc),
   strong: (text, size, key) => styled({ text, role: 'body', weight: BOLD, size: size * u, color: p.ink }, key, sc),
   accent: (text, size, key) => styled({ text, role: 'body', weight: SEMI, size: size * u, color: p.accent }, key, sc),
-  item: (text, size, key) => styled({ text, role: 'body', weight: SEMI, size: size * u, color: p.ink, bullet: p.accent }, key, sc),
+  item: (text, size, key) => styled({ text, role: 'body', weight: SEMI, size: size * u, color: p.ink, bullet: bullets ? p.accent : undefined }, key, sc),
   soft: (text, size, key) => styled({ text, role: 'body', weight: MEDIUM, size: size * u, color: p.soft }, key, sc),
   time: (text, size, key) => styled({ text, role: 'body', weight: timeWeight, size: size * u, color: p.accent }, key, sc),
 });
@@ -203,13 +203,14 @@ function joined(order: BodySection[], parts: Parts): FlowGroup[] {
 
 /** Turns the doc's body blocks into flow groups in the doc's section order (venue, schedule or list items, prices, includes, footer by default); compact sets each schedule and price row on one line. */
 export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOptions = {}): FlowGroup[] {
-  const l = makers(p, u, styleContext(doc), doc.rows?.timeWeight);
+  const l = makers(p, u, styleContext(doc), doc.rows?.timeWeight, doc.bullets !== false);
   const b = doc.blocks;
   const isList = doc.layout === LayoutId.List;
   const [rows, prices] = isList ? listGroups(doc, l, u, options.dateScale ?? 1) : eventGroups(doc, l, u, { ...options, marks: rowMarks(doc, p, u) });
   const includeLines = b.includes ? [l.accent(b.includes.heading, SIZE.small, 'includes.heading'), ...b.includes.items.map((item, i) => l.item(item, SIZE.small, `includes.items.${i}`))] : [];
   const includes = includeLines.length > 0 ? [{ lines: includeLines.flatMap((line) => wrapped(line, options.wrap)), gapAfter: GAP.includes * u, uniform: true }] : [];
-  const footer = b.footer ? [{ lines: wrapped(l.soft(b.footer, SIZE.small, 'footer'), options.wrap), gapAfter: 0 }] : [];
+  const footerLines = (b.footer ?? '').split('\n').filter((text) => text.trim() !== '');
+  const footer = footerLines.length > 0 ? [{ lines: footerLines.flatMap((text) => wrapped(l.soft(text, SIZE.small, 'footer'), options.wrap)), gapAfter: 0 }] : [];
   const parts: Parts = {
     [BodySection.Venue]: venueGroups(doc, p, u, l),
     [BodySection.Schedule]: isList ? [] : rows,
