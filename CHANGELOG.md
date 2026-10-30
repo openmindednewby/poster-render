@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.1
+
+- D-SPACE-1 "Space above/below applies per item": a wrapped line keeps `spaceAbove` on its first part and `spaceBelow` on its last, so a wrapped includes item's own lines stay tight.
+
 ## 0.13.0
 
 - FLIER-2 "Bullets on/off and line spacing": `FlierDoc.bullets` (default true; false drops the includes bullet dot and its indent), `LineStyle.spaceAbove` / `spaceBelow` (em of the line size, 0-2) added above / below a line, and a footer holding line breaks sets one footer line per text line. Docs without the new fields render pixel-identical (45 snapshots unchanged).

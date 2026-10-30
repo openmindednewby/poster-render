@@ -124,7 +124,9 @@ function halves(text: string): string[] {
 
 function wrapped(line: FlowLine, wrap: boolean | undefined): FlowLine[] {
   const parts = wrap ? halves(line.text) : [line.text];
-  return parts.length === 1 ? [line] : parts.map((text, i) => (i === 0 ? { ...line, text, tail: undefined } : { ...line, text, tail: undefined, bullet: undefined, hang: line.bullet !== undefined }));
+  const last = parts.length - 1;
+  const edges = (i: number): Partial<FlowLine> => ({ spaceAbove: i === 0 ? line.spaceAbove : undefined, spaceBelow: i === last ? line.spaceBelow : undefined });
+  return parts.length === 1 ? [line] : parts.map((text, i) => (i === 0 ? { ...line, ...edges(i), text, tail: undefined } : { ...line, ...edges(i), text, tail: undefined, bullet: undefined, hang: line.bullet !== undefined }));
 }
 
 function scheduleLines(doc: FlierDoc, l: Makers, row: { label: string; time: string }, i: number): FlowLine[] {

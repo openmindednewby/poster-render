@@ -71,3 +71,27 @@ describe('flow line spacing', () => {
     expect(spaced.texts[1]?.box.y ?? 0).toBeCloseTo((plain.texts[1]?.box.y ?? 0) + 20, 0);
   });
 });
+
+describe('bodyGroups wrapped item spacing', () => {
+  const wrappedParts = (): FlowLine[] => {
+    const base = includesDoc({ lineStyles: { 'includes.items.1': { spaceAbove: 1, spaceBelow: 1 } } });
+    const doc = { ...base, blocks: { ...base.blocks, includes: { heading: 'Includes', items: ['2 drinks', 'Salsa & Bachata room'] } } };
+    return bodyGroups(doc, PALETTES[doc.palette], 1, { wrap: true }).flatMap((g) => g.lines).filter((l) => l.key === 'includes.items.1');
+  };
+
+  it('with a wrapped item, keeps spaceAbove on its first part only', () => {
+    const parts = wrappedParts();
+
+    const above = parts.map((l) => l.spaceAbove !== undefined);
+
+    expect(above).toEqual([true, false]);
+  });
+
+  it('with a wrapped item, keeps spaceBelow on its last part only', () => {
+    const parts = wrappedParts();
+
+    const below = parts.map((l) => l.spaceBelow !== undefined);
+
+    expect(below).toEqual([false, true]);
+  });
+});
