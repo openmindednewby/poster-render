@@ -11,6 +11,7 @@ import { headerTuningSchema, overlapSchema, rowsSchema } from './rowsSchema';
 
 const SHORT = 60;
 const LINE = 120;
+const MAX_LINES = 6;
 const MAX_ROWS = 6;
 const MAX_ITEMS = 8;
 const MAX_PRICES = 4;
@@ -60,6 +61,7 @@ const blocks: JsonSchema = {
       properties: { heading: text(SHORT), items: { type: 'array', items: text(LINE), minItems: 1, maxItems: MAX_ROWS } },
     },
     footer: text(LINE),
+    lines: { type: 'array', items: { type: 'string', maxLength: LINE }, maxItems: MAX_LINES },
   },
 };
 

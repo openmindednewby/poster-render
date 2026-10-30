@@ -33,6 +33,7 @@ export interface FlierBlocks {
   prices?: PriceRow[];
   includes?: IncludesBlock;
   footer?: string;
+  lines?: string[];
 }
 
 export interface ListItem {

@@ -212,14 +212,16 @@ export function bodyGroups(doc: FlierDoc, p: Palette, u: number, options: BodyOp
   const includeLines = b.includes ? [l.accent(b.includes.heading, SIZE.small, 'includes.heading'), ...b.includes.items.map((item, i) => l.item(item, SIZE.small, `includes.items.${i}`))] : [];
   const includes = includeLines.length > 0 ? [{ lines: includeLines.flatMap((line) => wrapped(line, options.wrap)), gapAfter: GAP.includes * u, uniform: true }] : [];
   const footerLines = (b.footer ?? '').split('\n').filter((text) => text.trim() !== '');
+  const free = (b.lines ?? []).flatMap((text, i) => (text.trim() === '' ? [] : wrapped(l.strong(text, SIZE.small, `lines.${i}`), options.wrap)));
   const footer = footerLines.length > 0 ? [{ lines: footerLines.flatMap((text) => wrapped(l.soft(text, SIZE.small, 'footer'), options.wrap)), gapAfter: 0 }] : [];
+  const freeGroup = free.length > 0 ? [{ lines: free, gapAfter: GAP.includes * u }] : [];
   const parts: Parts = {
     [BodySection.Venue]: venueGroups(doc, p, u, l),
     [BodySection.Schedule]: isList ? [] : rows,
     [BodySection.Items]: isList ? rows : [],
     [BodySection.Prices]: prices,
     [BodySection.Includes]: includes,
-    [BodySection.Footer]: footer,
+    [BodySection.Footer]: [...freeGroup, ...footer],
   };
   return joined(sectionOrderOf(doc), parts);
 }
