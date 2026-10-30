@@ -1,6 +1,6 @@
 {
   "name": "@dloizides/poster-render",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "description": "Poster and flier rendering from one JSON document: FlierDoc JSON Schema + validator, a pure canvas render(doc, assets, canvas) with layouts, formats, palette and font sets, and PNG export. The picture is placed contain + anchor, never cropped, and nothing is drawn over it. No UI.",
   "keywords": [
     "poster",
