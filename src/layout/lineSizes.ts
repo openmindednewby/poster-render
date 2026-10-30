@@ -50,11 +50,11 @@ export function groupBox(group: FlowGroup, k: number, colW: number): GroupBox {
 
 function lineSize(line: FlowLine, width: number, k: number, avail: number): number {
   const indent = bulletIndent(line, k);
-  return Math.max(0, Math.min(line.size * k, (line.size * (avail * (line.widthScale ?? 1) - indent)) / Math.max(width, 1)));
+  return Math.max(0, Math.min(line.size * k, (line.size * (avail - indent)) / Math.max(width, 1)));
 }
 
-function groupSizes(m: Measured, k: number, avail: number): number[] {
-  const own = m.group.lines.map((line, i) => lineSize(line, m.widths[i] ?? 1, k, avail));
+function groupSizes(m: Measured, k: number, avail: number, spare: number): number[] {
+  const own = m.group.lines.map((line, i) => lineSize(line, m.widths[i] ?? 1, k, Math.min(avail * (line.widthScale ?? 1), avail + spare)));
   if (!m.group.uniform) {
     return own;
   }
@@ -70,7 +70,7 @@ function tieMembers(all: Measured[], k: number, colW: number, table: SizeTable, 
     m.group.lines.forEach((line, i) => {
       const id = pick(line);
       if (id !== undefined) {
-        const member = { line, width: Math.max(m.widths[i] ?? 1, 1), cap: Math.max(0, avail * (line.widthScale ?? 1) - bulletIndent(line, k)), sizes, i };
+        const member = { line, width: Math.max(m.widths[i] ?? 1, 1), cap: Math.max(0, Math.min(1, line.widthScale ?? 1) * avail - bulletIndent(line, k)), sizes, i };
         byId.set(id, [...(byId.get(id) ?? []), member]);
       }
     });
@@ -93,9 +93,9 @@ function sameWidths(list: Member[]): void {
   });
 }
 
-/** Line font sizes at fit factor k; tied lines grow to the larger size or width, never past the column. */
-export function sizeTable(all: Measured[], k: number, colW: number): SizeTable {
-  const table: SizeTable = new Map(all.map((m) => [m, groupSizes(m, k, groupBox(m.group, k, colW).avail)]));
+/** Line font sizes at fit factor k; a widened line may use up to `room`; tied lines never pass the column. */
+export function sizeTable(all: Measured[], k: number, colW: number, room = colW): SizeTable {
+  const table: SizeTable = new Map(all.map((m) => [m, groupSizes(m, k, groupBox(m.group, k, colW).avail, Math.max(0, room - colW))]));
   tieMembers(all, k, colW, table, (line) => line.sizeTie).forEach(sameSizes);
   tieMembers(all, k, colW, table, (line) => line.widthTie).forEach(sameWidths);
   return table;

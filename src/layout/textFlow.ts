@@ -36,6 +36,7 @@ export interface FlowGroup {
 }
 
 export interface FlowZone extends Rect {
+  room?: number;
   right?: boolean;
 }
 
@@ -105,7 +106,7 @@ interface LineBox {
 function lineX(line: FlowLine, box: LineBox): number {
   const { col, pad, indent, w } = box;
   const left = col.x + pad + indent;
-  const right = col.x + col.w - pad - w;
+  const right = Math.max(left, col.x + col.w - pad - w);
   switch (line.align) {
     case LineAlign.Left:
       return left;
@@ -218,12 +219,12 @@ function splitColumns(groups: Measured[], zone: FlowZone): Columns {
   }
   cut = keepTogether(groups, heights, cut);
   return [
-    { col: { ...zone, w }, groups: groups.slice(0, cut) },
-    { col: { ...zone, x: zone.x + w + gap, w }, groups: groups.slice(cut) },
+    { col: { ...zone, w, room: w }, groups: groups.slice(0, cut) },
+    { col: { ...zone, x: zone.x + w + gap, w, room: w }, groups: groups.slice(cut) },
   ];
 }
 
-const tableFor = (columns: Columns, k: number): SizeTable => sizeTable(columns.flatMap((c) => c.groups), k, columns[0]?.col.w ?? 0);
+const tableFor = (columns: Columns, k: number): SizeTable => sizeTable(columns.flatMap((c) => c.groups), k, columns[0]?.col.w ?? 0, columns[0]?.col.room);
 
 function largestK(columns: Columns, zoneH: number): number {
   const fits = (k: number): boolean => {

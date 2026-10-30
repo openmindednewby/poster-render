@@ -90,7 +90,7 @@ function flowAll(ctx: PosterContext, input: FitInput, base: LayoutGeometry, refl
   const head = flow(ctx, headerGroups(doc, palette, u), zones.text, fonts);
   const flanks = geo.flanks ?? [];
   const tight = closeHeaderGap(geo, head, doc.tuning?.headerGap, u);
-  const body = flow(ctx, bodyGroups(doc, palette, u, { withPrices: flanks.length === 0, compact: reflow.compact, wrap: reflow.wrap, dateScale: doc.tuning?.itemDateScale }), tight.body, fonts);
+  const body = flow(ctx, bodyGroups(doc, palette, u, { withPrices: flanks.length === 0, compact: reflow.compact, wrap: reflow.wrap, dateScale: doc.tuning?.itemDateScale }), { ...tight.body, room: Math.max(tight.body.w, base.body.w) }, fonts);
   const sides = flanks.length > 0 ? equalFlanks(ctx, flankPriceGroups(doc, palette, u), flanks, fonts) : [emptyFlow()];
   return { geo: tight, zones, head, body, sides };
 }
