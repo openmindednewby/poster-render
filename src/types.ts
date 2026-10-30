@@ -1,4 +1,5 @@
 import type { BackgroundStyle } from './enums/BackgroundStyle';
+import type { BodySection } from './enums/BodySection';
 import type { FontSetId } from './enums/FontSetId';
 import type { FormatId } from './enums/FormatId';
 import type { LayoutId } from './enums/LayoutId';
@@ -86,6 +87,7 @@ export interface FlierDoc {
   lineStyles?: Record<LineKey, LineStyle | undefined>;
   lineTies?: LineTie[];
   rows?: RowTheme;
+  sectionOrder?: BodySection[];
 }
 
 /** A text line path such as "title", "venue.1", "schedule.0.time" or "items.2.date" (see LINE_KEY_PATTERN). */
@@ -187,6 +189,8 @@ export interface RenderReport {
   ruleBoxes: Rect[];
   logo: Rect | null;
   backdrop: Rect | null;
+  sectionOrder: BodySection[];
+  roleOrder: string[];
 }
 
 export interface Palette {

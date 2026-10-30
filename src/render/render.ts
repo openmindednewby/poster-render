@@ -8,6 +8,8 @@ import { PALETTES } from '../palettes';
 import { FlierDocError, missingAssets, validateFlierDoc } from '../schema/validateFlierDoc';
 import { fitToFloor, type FittedText } from './fitToFloor';
 import { lineBoxesOf } from './lineBoxesOf';
+import { sectionOrderOf } from '../layout/sectionOrder';
+import { roleOrder } from './roleOrder';
 import { placePicture, reachPicture, stepRules } from './overlap';
 import { pictureRegion } from './regions';
 import { drawRowIcon } from './rowIcons';
@@ -196,17 +198,20 @@ export function render(input: unknown, assets: PosterAssets, canvas: PosterCanva
   if (layered) {
     flows.forEach((f) => drawMarks(ctx, f, radius));
   }
+  const lineBoxes = lineBoxesOf(flows.flatMap((f) => f.texts));
   return {
     width,
     height,
     picture,
     pictureRegion: region,
     textBoxes: flows.flatMap((f) => f.texts.map((t) => t.box)),
-    lineBoxes: lineBoxesOf(flows.flatMap((f) => f.texts)),
+    lineBoxes,
     cardBoxes: body.cards.map((c) => c.rect),
     iconBoxes: flows.flatMap((f) => f.icons.map((i) => i.rect)),
     ruleBoxes: flows.flatMap((f) => f.rules.map((r) => r.rect)),
     logo,
     backdrop,
+    sectionOrder: sectionOrderOf(doc),
+    roleOrder: roleOrder(lineBoxes),
   };
 }

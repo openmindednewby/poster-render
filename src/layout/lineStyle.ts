@@ -50,6 +50,7 @@ export function styled(line: FlowLine, key: string, sc: StyleContext): FlowLine 
     italic: style?.italic,
     spacing: style?.letterSpacing,
     widthScale: style?.widthScale,
+    fixedSize: style?.sizeScale === undefined ? undefined : true,
     align: style?.align,
     widthTie,
     sizeTie,

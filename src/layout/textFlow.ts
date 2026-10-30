@@ -21,6 +21,7 @@ export interface FlowLine {
   gapAfter?: number;
   key?: string;
   widthScale?: number;
+  fixedSize?: boolean;
   tail?: { key: string; at: number };
 }
 
@@ -38,7 +39,6 @@ export interface FlowGroup {
 }
 
 export interface FlowZone extends Rect {
-  room?: number;
   right?: boolean;
 }
 
@@ -50,6 +50,7 @@ export interface TextOp {
   spacing?: string;
   key?: string;
   runs?: { key: string; box: Rect }[];
+  fixed?: boolean;
 }
 
 export interface FlowResult {
@@ -152,7 +153,7 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
     const w = ((m.widths[i] ?? 0) * size) / line.size;
     const x = lineX(line, { col, pad, indent, w });
     const box = { x, y, w, h: size * LINE_HEIGHT };
-    out?.texts.push({ text: line.text, font: '', color: line.color, box, key: line.key, ...runsOf(line, box, m.cuts?.[i], size / line.size) });
+    out?.texts.push({ text: line.text, font: '', color: line.color, box, key: line.key, ...(line.fixedSize === true ? { fixed: true } : {}), ...runsOf(line, box, m.cuts?.[i], size / line.size) });
     if (line.bullet && out) {
       out.bullets.push({ x: col.x + pad + size * BULLET_RADIUS, y: y + (size * LINE_HEIGHT) / 2, r: size * BULLET_RADIUS, color: line.bullet });
     }
@@ -222,12 +223,12 @@ function splitColumns(groups: Measured[], zone: FlowZone): Columns {
   }
   cut = keepTogether(groups, heights, cut);
   return [
-    { col: { ...zone, w, room: w }, groups: groups.slice(0, cut) },
-    { col: { ...zone, x: zone.x + w + gap, w, room: w }, groups: groups.slice(cut) },
+    { col: { ...zone, w }, groups: groups.slice(0, cut) },
+    { col: { ...zone, x: zone.x + w + gap, w }, groups: groups.slice(cut) },
   ];
 }
 
-const tableFor = (columns: Columns, k: number): SizeTable => sizeTable(columns.flatMap((c) => c.groups), k, columns[0]?.col.w ?? 0, columns[0]?.col.room);
+const tableFor = (columns: Columns, k: number): SizeTable => sizeTable(columns.flatMap((c) => c.groups), k, columns[0]?.col.w ?? 0);
 
 function largestK(columns: Columns, zoneH: number): number {
   const fits = (k: number): boolean => {

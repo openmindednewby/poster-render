@@ -22,7 +22,7 @@ describe('validateFlierDoc lineStyles and lineTies', () => {
     [{ subtitle: { color: '#ffffff' } }, 'lineStyles.subtitle: is not allowed'],
     [{ footer: { color: 'red' } }, 'lineStyles.footer.color: has an invalid format'],
     [{ footer: { font: 'Arial; x' } }, 'lineStyles.footer.font: has an invalid format'],
-    [{ footer: { sizeScale: 5 } }, 'lineStyles.footer.sizeScale: must be at most 3 (got 5)'],
+    [{ footer: { sizeScale: -1 } }, 'lineStyles.footer.sizeScale: must be at least 0 (got -1)'],
     [{ footer: { weight: 950 } }, 'lineStyles.footer.weight: must be one of 100, 200, 300, 400, 500, 600, 700, 800, 900 (got 950)'],
     [{ footer: { italic: 'yes' } }, 'lineStyles.footer.italic: must be a boolean (got string)'],
     [{ footer: { letterSpacing: 1 } }, 'lineStyles.footer.letterSpacing: must be at most 0.5 (got 1)'],

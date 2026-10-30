@@ -50,17 +50,20 @@ export function groupBox(group: FlowGroup, k: number, colW: number): GroupBox {
 }
 
 function lineSize(line: FlowLine, width: number, k: number, avail: number): number {
+  if (line.fixedSize === true) {
+    return line.size;
+  }
   const indent = bulletIndent(line, k);
   return Math.max(0, Math.min(line.size * k, (line.size * (avail - indent)) / Math.max(width, 1)));
 }
 
-function groupSizes(m: Measured, k: number, avail: number, spare: number): number[] {
-  const own = m.group.lines.map((line, i) => lineSize(line, m.widths[i] ?? 1, k, Math.min(avail * (line.widthScale ?? 1), avail + spare)));
+function groupSizes(m: Measured, k: number, avail: number): number[] {
+  const own = m.group.lines.map((line, i) => lineSize(line, m.widths[i] ?? 1, k, avail * (line.widthScale ?? 1)));
   if (!m.group.uniform) {
     return own;
   }
   const ratio = Math.min(...m.group.lines.map((line, i) => (own[i] ?? 0) / line.size));
-  return m.group.lines.map((line) => line.size * ratio);
+  return m.group.lines.map((line) => (line.fixedSize === true ? line.size : line.size * ratio));
 }
 
 function tieMembers(all: Measured[], k: number, colW: number, table: SizeTable, pick: (line: FlowLine) => number | undefined): Member[][] {
@@ -70,7 +73,7 @@ function tieMembers(all: Measured[], k: number, colW: number, table: SizeTable, 
     const sizes = table.get(m) ?? [];
     m.group.lines.forEach((line, i) => {
       const id = pick(line);
-      if (id !== undefined) {
+      if (id !== undefined && line.fixedSize !== true) {
         const member = { line, width: Math.max(m.widths[i] ?? 1, 1), cap: Math.max(0, Math.min(1, line.widthScale ?? 1) * avail - bulletIndent(line, k)), sizes, i };
         byId.set(id, [...(byId.get(id) ?? []), member]);
       }
@@ -94,9 +97,9 @@ function sameWidths(list: Member[]): void {
   });
 }
 
-/** Line font sizes at fit factor k; a widened line may use up to `room`; tied lines never pass the column. */
-export function sizeTable(all: Measured[], k: number, colW: number, room = colW): SizeTable {
-  const table: SizeTable = new Map(all.map((m) => [m, groupSizes(m, k, groupBox(m.group, k, colW).avail, Math.max(0, room - colW))]));
+/** Line font sizes at fit factor k; a user-sized line keeps its own size; tied lines never pass the column. */
+export function sizeTable(all: Measured[], k: number, colW: number): SizeTable {
+  const table: SizeTable = new Map(all.map((m) => [m, groupSizes(m, k, groupBox(m.group, k, colW).avail)]));
   tieMembers(all, k, colW, table, (line) => line.sizeTie).forEach(sameSizes);
   tieMembers(all, k, colW, table, (line) => line.widthTie).forEach(sameWidths);
   return table;

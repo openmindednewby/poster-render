@@ -1,4 +1,5 @@
 import { BackgroundStyle } from '../enums/BackgroundStyle';
+import { BodySection } from '../enums/BodySection';
 import { FontSetId } from '../enums/FontSetId';
 import { FormatId } from '../enums/FormatId';
 import { LayoutId } from '../enums/LayoutId';
@@ -18,6 +19,7 @@ const MIN_SCALE = 0.3;
 const MAX_HEADER_GAP = 200;
 const MIN_DATE_SCALE = 0.5;
 const MAX_DATE_SCALE = 2;
+const MAX_SECTIONS = 6;
 
 const text = (maxLength: number): JsonSchema => ({ type: 'string', minLength: 1, maxLength });
 
@@ -101,6 +103,7 @@ export const flierDocSchema: JsonSchema = {
     lineStyles: lineStylesSchema,
     lineTies: lineTiesSchema,
     rows: rowsSchema,
+    sectionOrder: { type: 'array', maxItems: MAX_SECTIONS, items: { type: 'string', enum: Object.values(BodySection) } },
     items: {
       type: 'array',
       minItems: 1,

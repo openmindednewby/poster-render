@@ -1,4 +1,5 @@
 export { BackgroundStyle } from './enums/BackgroundStyle';
+export { BodySection } from './enums/BodySection';
 export { FontSetId } from './enums/FontSetId';
 export { FormatId } from './enums/FormatId';
 export { LayoutId } from './enums/LayoutId';
@@ -16,6 +17,8 @@ export { flierDocSchema } from './schema/flierDocSchema';
 export type { JsonSchema } from './schema/jsonSchemaTypes';
 export { validateFlierDoc, FlierDocError, type FlierDocResult } from './schema/validateFlierDoc';
 export { render } from './render/render';
+export { defaultSectionOrder, sectionOrderOf } from './layout/sectionOrder';
+export { roleOf, roleOrder } from './render/roleOrder';
 export { exportPng, type DataUrlCanvas } from './exportPng';
 export { LAYOUT_CATALOGUE, defaultLayoutFor, type LayoutCatalogueEntry } from './layoutCatalogue';
 export { kizombaWorkshopDocs, kizombaWorkshop } from './examples/kizombaWorkshop';

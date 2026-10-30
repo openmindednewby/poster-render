@@ -7,10 +7,6 @@ export const LINE_KEY_PATTERN =
   '^(title|titleBottom|script|footer|includes[.]heading|includes[.]items[.][0-5]|venue[.][0-2]|schedule[.][0-5][.](label|time)|prices[.][0-3][.](amount|label)|items[.][0-7][.](date|price|schedule[.][0-5]))$';
 
 const MAX_FONT = 40;
-const MIN_SIZE_SCALE = 0.25;
-const MAX_SIZE_SCALE = 3;
-const MIN_WIDTH_SCALE = 0.5;
-const MAX_WIDTH_SCALE = 1.5;
 const MIN_SPACING = -0.1;
 const MAX_SPACING = 0.5;
 const MAX_TIES = 12;
@@ -23,8 +19,8 @@ const lineStyle: JsonSchema = {
   additionalProperties: false,
   properties: {
     font: { type: 'string', minLength: 1, maxLength: MAX_FONT, pattern: '^[A-Za-z0-9 ]+$' },
-    sizeScale: { type: 'number', minimum: MIN_SIZE_SCALE, maximum: MAX_SIZE_SCALE },
-    widthScale: { type: 'number', minimum: MIN_WIDTH_SCALE, maximum: MAX_WIDTH_SCALE },
+    sizeScale: { type: 'number', minimum: 0 },
+    widthScale: { type: 'number', minimum: 0 },
     color: { type: 'string', pattern: '^#[0-9a-fA-F]{6}$' },
     weight: { type: 'integer', enum: WEIGHTS },
     italic: { type: 'boolean' },
