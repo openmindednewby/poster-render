@@ -8,6 +8,7 @@ const ICON_GAP = 0.35;
 export interface Measured {
   group: FlowGroup;
   widths: number[];
+  cuts?: (readonly [number, number] | undefined)[];
 }
 
 export type SizeTable = Map<Measured, number[]>;

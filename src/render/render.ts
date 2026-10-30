@@ -3,14 +3,15 @@ import { PictureAnchor } from '../enums/PictureAnchor';
 import { FONT_SETS } from '../fontSets';
 import { FORMAT_SIZES } from '../formats';
 import { placeContain, type LayoutGeometry } from '../layout/geometry';
-import type { FlowResult, TextOp } from '../layout/textFlow';
+import type { FlowResult } from '../layout/textFlow';
 import { PALETTES } from '../palettes';
 import { FlierDocError, missingAssets, validateFlierDoc } from '../schema/validateFlierDoc';
 import { fitToFloor, type FittedText } from './fitToFloor';
+import { lineBoxesOf } from './lineBoxesOf';
 import { placePicture, reachPicture, stepRules } from './overlap';
 import { pictureRegion } from './regions';
 import { drawRowIcon } from './rowIcons';
-import type { FlierDoc, LineKey, PosterAssets, PosterCanvas, PosterContext, PosterImage, Rect, RenderReport } from '../types';
+import type { FlierDoc, PosterAssets, PosterCanvas, PosterContext, PosterImage, Rect, RenderReport } from '../types';
 
 const BASE = 1080;
 const NO_SPACING = '0px';
@@ -163,25 +164,6 @@ function drawLogo(ctx: PosterContext, doc: FlierDoc, assets: PosterAssets, fitte
     ctx.drawImage(logoImage, logo.x, logo.y, logo.w, logo.h);
   }
   return logo;
-}
-
-function lineBoxesOf(texts: readonly TextOp[]): Record<LineKey, Rect | undefined> {
-  const boxes: Record<LineKey, Rect | undefined> = {};
-  texts.forEach(({ key, box }) => {
-    if (key !== undefined) {
-      boxes[key] = union(boxes[key], box);
-    }
-  });
-  return boxes;
-}
-
-function union(a: Rect | undefined, b: Rect): Rect {
-  if (a === undefined) {
-    return { ...b };
-  }
-  const x = Math.min(a.x, b.x);
-  const y = Math.min(a.y, b.y);
-  return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
 }
 
 /** Validates the doc, then draws it on the canvas (resized to the format); throws FlierDocError before touching the canvas. */

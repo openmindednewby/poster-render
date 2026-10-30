@@ -1,6 +1,7 @@
 import { LineAlign } from '../enums/LineAlign';
 import type { RowIcon } from '../enums/RowIcon';
 import type { FontSet, PosterContext, Rect } from '../types';
+import { measure, measureCut, runsOf } from './lineRuns';
 import { BULLET_INDENT, LINE_HEIGHT, groupBox, indented, sizeTable, type Measured, type SizeTable } from './lineSizes';
 
 export interface FlowLine {
@@ -20,6 +21,7 @@ export interface FlowLine {
   gapAfter?: number;
   key?: string;
   widthScale?: number;
+  tail?: { key: string; at: number };
 }
 
 export interface FlowGroup {
@@ -47,6 +49,7 @@ export interface TextOp {
   box: Rect;
   spacing?: string;
   key?: string;
+  runs?: { key: string; box: Rect }[];
 }
 
 export interface FlowResult {
@@ -66,7 +69,6 @@ const TWO_COLUMN_MIN = 0.75;
 const TWO_COLUMN_GAIN = 1.15;
 const MIN_K = 0.02;
 const STEPS = 22;
-const NO_SPACING = '0px';
 
 export const fontOf = (line: FlowLine, size: number, fonts: FontSet): string => {
   const family = line.family === undefined ? fonts[line.role] : `"${line.family}", ${fonts[line.role]}`;
@@ -149,7 +151,8 @@ function placeGroup(m: Measured, at: GroupPlace, out: FlowResult | null): number
     const indent = (indented(line) ? line.size * k * BULLET_INDENT : 0) + iconIndent;
     const w = ((m.widths[i] ?? 0) * size) / line.size;
     const x = lineX(line, { col, pad, indent, w });
-    out?.texts.push({ text: line.text, font: '', color: line.color, box: { x, y, w, h: size * LINE_HEIGHT }, key: line.key });
+    const box = { x, y, w, h: size * LINE_HEIGHT };
+    out?.texts.push({ text: line.text, font: '', color: line.color, box, key: line.key, ...runsOf(line, box, m.cuts?.[i], size / line.size) });
     if (line.bullet && out) {
       out.bullets.push({ x: col.x + pad + size * BULLET_RADIUS, y: y + (size * LINE_HEIGHT) / 2, r: size * BULLET_RADIUS, color: line.bullet });
     }
@@ -259,22 +262,12 @@ function bestColumns(measured: Measured[], zone: FlowZone): { columns: Columns; 
   return forced || k2 > k1 * TWO_COLUMN_GAIN ? { columns: split, k: k2 } : { columns: single, k: k1 };
 }
 
-function measure(ctx: PosterContext, line: FlowLine, fonts: FontSet): number {
-  ctx.font = fontOf(line, line.size, fonts);
-  if (line.spacing === undefined) {
-    return ctx.measureText(line.text).width;
-  }
-  ctx.letterSpacing = `${line.spacing * line.size}px`;
-  const width = ctx.measureText(line.text).width;
-  ctx.letterSpacing = NO_SPACING;
-  return width;
-}
-
 /** Lays groups out in the zone, shrinking every size by one factor until all text fits; never overflows. */
 export function flow(ctx: PosterContext, groups: FlowGroup[], zone: FlowZone, fonts: FontSet): FlowResult {
   const measured = groups.map((group) => ({
     group,
     widths: group.lines.map((line) => measure(ctx, line, fonts)),
+    cuts: group.lines.map((line) => measureCut(ctx, line, fonts)),
   }));
   const { columns, k: lo } = bestColumns(measured, zone);
   const out = emptyFlow();

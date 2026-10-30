@@ -122,7 +122,7 @@ function halves(text: string): string[] {
 
 function wrapped(line: FlowLine, wrap: boolean | undefined): FlowLine[] {
   const parts = wrap ? halves(line.text) : [line.text];
-  return parts.map((text, i) => (i === 0 ? { ...line, text } : { ...line, text, bullet: undefined, hang: line.bullet !== undefined }));
+  return parts.length === 1 ? [line] : parts.map((text, i) => (i === 0 ? { ...line, text, tail: undefined } : { ...line, text, tail: undefined, bullet: undefined, hang: line.bullet !== undefined }));
 }
 
 function scheduleLines(doc: FlierDoc, l: Makers, row: { label: string; time: string }, i: number): FlowLine[] {
@@ -131,6 +131,8 @@ function scheduleLines(doc: FlierDoc, l: Makers, row: { label: string; time: str
   const tied = r?.labelScale === undefined ? label : { ...label, sizeTie: label.sizeTie ?? LABEL_TIE };
   return [tied, l.time(row.time, SIZE.scheduleTime * (r?.timeScale ?? 1), `schedule.${i}.time`)];
 }
+
+const tailed = (line: FlowLine, key: string, headLength: number): FlowLine => ({ ...line, tail: { key, at: line.text.length - line.text.slice(headLength).trimStart().length } });
 
 const priceAmount = (doc: FlierDoc, line: FlowLine): FlowLine => (doc.rows?.priceGap === undefined ? line : { ...line, gapAfter: doc.rows.priceGap });
 
@@ -142,11 +144,11 @@ function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions &
   const lastRow = schedule.length + prices.length - 1;
   const icons = doc.rows?.icons;
   schedule.forEach((row, i) => {
-    const lines = options.compact ? [l.strong(`${row.label}  ${row.time}`, SIZE.scheduleLabel, `schedule.${i}.label`)] : scheduleLines(doc, l, row, i);
+    const lines = options.compact ? [tailed(l.strong(`${row.label}  ${row.time}`, SIZE.scheduleLabel, `schedule.${i}.label`), `schedule.${i}.time`, row.label.length)] : scheduleLines(doc, l, row, i);
     groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < schedule.length - 1, ...options.marks(icons?.schedule, i, i === lastRow) });
   });
   prices.forEach((row, i) => {
-    const lines = options.compact ? [l.strong(`${row.amount} ${row.label}`, SIZE.priceAmount, `prices.${i}.amount`)] : [priceAmount(doc, l.strong(row.amount, SIZE.priceAmount, `prices.${i}.amount`)), l.accent(row.label, SIZE.priceLabel * (doc.rows?.priceLabelScale ?? 1), `prices.${i}.label`)];
+    const lines = options.compact ? [tailed(l.strong(`${row.amount} ${row.label}`, SIZE.priceAmount, `prices.${i}.amount`), `prices.${i}.label`, row.amount.length)] : [priceAmount(doc, l.strong(row.amount, SIZE.priceAmount, `prices.${i}.amount`)), l.accent(row.label, SIZE.priceLabel * (doc.rows?.priceLabelScale ?? 1), `prices.${i}.label`)];
     groups.push({ lines, gapAfter: GAP.row * u, keepWithNext: i < prices.length - 1, ...options.marks(icons?.prices, i, schedule.length + i === lastRow) });
   });
   return groups;
@@ -154,7 +156,7 @@ function eventGroups(doc: FlierDoc, l: Makers, u: number, options: BodyOptions &
 
 function listGroups(doc: FlierDoc, l: Makers, u: number, dateScale: number): FlowGroup[] {
   const groups = (doc.items ?? []).map((item, n) => itemGroup(item, n, l, { u, dateScale }));
-  const prices = doc.blocks.prices?.map((row, i) => l.strong(`${row.amount} ${row.label}`, SIZE.listPrice, `prices.${i}.amount`)) ?? [];
+  const prices = doc.blocks.prices?.map((row, i) => tailed(l.strong(`${row.amount} ${row.label}`, SIZE.listPrice, `prices.${i}.amount`), `prices.${i}.label`, row.amount.length)) ?? [];
   if (prices.length > 0) {
     groups.push({ lines: prices, gapAfter: GAP.row * u });
   }
